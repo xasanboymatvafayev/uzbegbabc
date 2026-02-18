@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from app.models.food import Food
 from app.models.category import Category
 from typing import List, Optional
@@ -52,6 +52,10 @@ async def delete_food(session: AsyncSession, food_id: int) -> bool:
 
 
 async def create_category(session: AsyncSession, name: str) -> Category:
+    # Fix sequence before insert to avoid duplicate key errors
+    await session.execute(
+        text("SELECT setval('categories_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categories))")
+    )
     cat = Category(name=name)
     session.add(cat)
     await session.commit()
