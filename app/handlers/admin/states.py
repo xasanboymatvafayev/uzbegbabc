@@ -11,11 +11,6 @@ class FoodAddStates(StatesGroup):
     waiting_is_new = State()
 
 
-class FoodEditStates(StatesGroup):
-    waiting_field = State()
-    waiting_value = State()
-
-
 class PromoCreateStates(StatesGroup):
     waiting_code = State()
     waiting_discount = State()
@@ -24,8 +19,9 @@ class PromoCreateStates(StatesGroup):
 
 
 class CourierAddStates(StatesGroup):
-    waiting_chat_id = State()
     waiting_name = State()
+    waiting_chat_id = State()
+    waiting_channel_id = State()
 
 
 class CategoryAddStates(StatesGroup):
