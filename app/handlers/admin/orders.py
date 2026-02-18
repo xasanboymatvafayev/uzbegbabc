@@ -4,7 +4,9 @@ from app.db.session import AsyncSessionFactory
 from app.services.orders import get_order_by_id, update_order_status
 from app.services.courier import get_active_couriers, get_courier_by_id
 from app.services.settings_service import get_shop_channel_id
-from app.services.telegram_notify import update_channel_message, notify_user_status, notify_courier
+from app.services.telegram_notify import (
+    update_channel_message, notify_user_status, notify_courier_channel
+)
 from app.models.order import STATUS_LABELS
 from app.keyboards.admin import get_courier_assign_keyboard
 from app.config import settings
@@ -27,24 +29,19 @@ async def admin_change_status(call: CallbackQuery):
     parts = call.data.split(":")
     order_id = int(parts[1])
     new_status = parts[2]
-
     if new_status not in VALID_STATUSES:
         await call.answer("❌ Noto'g'ri status")
         return
-
     async with AsyncSessionFactory() as session:
         order = await update_order_status(session, order_id, new_status)
         if not order:
             await call.answer("❌ Buyurtma topilmadi")
             return
-
         await notify_user_status(call.bot, order.user.tg_id, order)
-
         shop_channel_id = await get_shop_channel_id(session)
         if shop_channel_id and order.channel_message_id:
             closed = new_status in ("DELIVERED", "CANCELED")
             await update_channel_message(call.bot, shop_channel_id, order.channel_message_id, order, closed=closed)
-
     status_label = STATUS_LABELS.get(new_status, new_status)
     await call.answer(f"✅ Status: {status_label}")
 
@@ -61,10 +58,7 @@ async def assign_courier_start(call: CallbackQuery):
         if not order:
             await call.answer("Buyurtma topilmadi", show_alert=True)
             return
-
-    await call.message.edit_reply_markup(
-        reply_markup=get_courier_assign_keyboard(couriers, order_id)
-    )
+    await call.message.edit_reply_markup(reply_markup=get_courier_assign_keyboard(couriers, order_id))
 
 
 @router.callback_query(F.data == "assign_cancel")
@@ -87,26 +81,27 @@ async def assign_courier(call: CallbackQuery):
     parts = call.data.split(":")
     order_id = int(parts[1])
     courier_id = int(parts[2])
-
     async with AsyncSessionFactory() as session:
         courier = await get_courier_by_id(session, courier_id)
         if not courier:
             await call.answer("Kuryer topilmadi", show_alert=True)
             return
-
+        if not courier.channel_id:
+            await call.answer(
+                f"❌ {courier.name} kuryer kanalida channel_id yo'q!\nAdmin panelda qayta qo'shing.",
+                show_alert=True
+            )
+            return
         order = await update_order_status(session, order_id, "COURIER_ASSIGNED", courier_id=courier_id)
         if not order:
             await call.answer("Buyurtma topilmadi", show_alert=True)
             return
-
         await notify_user_status(call.bot, order.user.tg_id, order)
-        success = await notify_courier(call.bot, courier, order)
-
+        success = await notify_courier_channel(call.bot, courier, order)
         shop_channel_id = await get_shop_channel_id(session)
         if shop_channel_id and order.channel_message_id:
             await update_channel_message(call.bot, shop_channel_id, order.channel_message_id, order)
-
     if success:
-        await call.answer(f"✅ {courier.name} ga yuborildi!")
+        await call.answer(f"✅ {courier.name} kanaliga yuborildi!")
     else:
-        await call.answer("⚠️ Kuryerga xabar yuborishda xato")
+        await call.answer(f"⚠️ {courier.name} kanaliga yuborishda xato!")
