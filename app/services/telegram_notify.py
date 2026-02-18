@@ -1,6 +1,5 @@
 from aiogram import Bot
-from app.models.order import Order, OrderStatus, STATUS_LABELS
-from app.models.courier import Courier
+from app.models.order import Order, STATUS_LABELS
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import logging
 
@@ -33,18 +32,22 @@ def get_closed_order_keyboard() -> InlineKeyboardMarkup:
 
 
 def format_admin_channel_message(order: Order) -> str:
-    status_label = STATUS_LABELS.get(order.status, order.status)
+    status = order.status if isinstance(order.status, str) else order.status.value
+    status_label = STATUS_LABELS.get(status, status)
     geo_link = ""
     if order.location_lat and order.location_lng:
         geo_link = f"\n📍 <a href='https://maps.google.com/?q={order.location_lat},{order.location_lng}'>Локация #{order.order_number}</a>"
 
     items_text = format_order_items(order)
     user = order.user
-    username_str = f"(@{user.username})" if user.username else ""
+    username_str = f"(@{user.username})" if user and user.username else ""
+    full_name = user.full_name if user else order.customer_name
+
+    emoji = "🆕" if status == "NEW" else "📦"
 
     return (
-        f"{'🆕' if order.status == OrderStatus.NEW else '📦'} Заказ #{order.order_number}\n"
-        f"👤 {user.full_name} {username_str}\n"
+        f"{emoji} Заказ #{order.order_number}\n"
+        f"👤 {full_name} {username_str}\n"
         f"📞 {order.phone}\n"
         f"💰 {int(order.total):,} сум\n"
         f"🕒 {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
@@ -87,21 +90,21 @@ async def update_channel_message(bot: Bot, channel_id: int, message_id: int, ord
 
 
 async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
-    status = order.status
+    status = order.status if isinstance(order.status, str) else order.status.value
     status_label = STATUS_LABELS.get(status, status)
     try:
-        if status == OrderStatus.NEW:
+        if status == "NEW":
             text = (
                 f"✅ Ваш заказ принят!\n"
                 f"🆔 Заказ #{order.order_number}\n"
                 f"💰 Сумма: {int(order.total):,} сум\n"
                 f"📦 Статус: {status_label}"
             )
-        elif status == OrderStatus.OUT_FOR_DELIVERY:
+        elif status == "OUT_FOR_DELIVERY":
             text = f"🚴 Ваш заказ #{order.order_number} передан курьеру!"
-        elif status == OrderStatus.DELIVERED:
+        elif status == "DELIVERED":
             text = f"🎉 Ваш заказ #{order.order_number} успешно доставлен!\nСпасибо, что выбрали FIESTA!"
-        elif status == OrderStatus.CANCELED:
+        elif status == "CANCELED":
             text = f"❌ Ваш заказ #{order.order_number} отменён."
         else:
             text = f"📦 Заказ #{order.order_number}: статус изменён на «{status_label}»"
@@ -110,9 +113,12 @@ async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
         logger.error(f"Failed to notify user {user_tg_id}: {e}")
 
 
-async def notify_courier(bot: Bot, courier: Courier, order: Order) -> bool:
+async def notify_courier(bot, courier, order: Order) -> bool:
     items_text = format_order_items(order)
-    geo_link = f"https://maps.google.com/?q={order.location_lat},{order.location_lng}" if order.location_lat else "—"
+    geo_link = (
+        f"https://maps.google.com/?q={order.location_lat},{order.location_lng}"
+        if order.location_lat else "—"
+    )
     text = (
         f"🚴 Новый заказ #{order.order_number}\n"
         f"👤 Клиент: {order.customer_name}\n"
@@ -124,8 +130,8 @@ async def notify_courier(bot: Bot, courier: Courier, order: Order) -> bool:
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Принять заказ", callback_data=f"courier_accept:{order.id}"),
-            InlineKeyboardButton(text="📦 Доставлен", callback_data=f"courier_delivered:{order.id}"),
+            InlineKeyboardButton(text="✅ Qabul qildim", callback_data=f"courier_accept:{order.id}"),
+            InlineKeyboardButton(text="📦 Yetkazildi", callback_data=f"courier_delivered:{order.id}"),
         ]
     ])
     try:
