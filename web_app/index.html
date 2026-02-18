@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIESTA — Заказать</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-top">
+        <h1 class="logo">🌟 FIESTA</h1>
+        <div class="search-wrap">
+          <input type="text" id="searchInput" placeholder="Поиск блюд..." class="search-input" />
+          <button class="filter-btn" id="filterBtn" title="Фильтры">⚙️</button>
+        </div>
+      </div>
+      <!-- Categories -->
+      <div class="categories-scroll" id="categoriesScroll">
+        <button class="cat-btn active" data-id="all">Все</button>
+      </div>
+    </header>
+
+    <!-- FILTER MODAL -->
+    <div class="modal-overlay" id="filterModal" style="display:none">
+      <div class="modal">
+        <div class="modal-header">
+          <span>🔽 Фильтр</span>
+          <button class="close-btn" id="closeFilterBtn">✕</button>
+        </div>
+        <div class="modal-body">
+          <label class="radio-label">
+            <input type="radio" name="sort" value="" checked> По умолчанию
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort" value="rating"> ⭐ По рейтингу
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort" value="new"> 🆕 Новинки
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort" value="price_asc"> 💸 Сначала дешевле
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort" value="price_desc"> 💎 Сначала дороже
+          </label>
+        </div>
+        <button class="apply-btn" id="applyFilter">Применить</button>
+      </div>
+    </div>
+
+    <!-- FOODS GRID -->
+    <main class="foods-container" id="foodsContainer">
+      <div class="loading" id="loadingEl">Загрузка...</div>
+    </main>
+
+    <!-- CART PANEL -->
+    <div class="cart-panel" id="cartPanel" style="display:none">
+      <div class="cart-info">
+        <span class="cart-count" id="cartCount">0</span>
+        <span class="cart-label">Корзина</span>
+        <span class="cart-total" id="cartTotal">0 сум</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn">Оформить →</button>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div class="modal-overlay" id="checkoutModal" style="display:none">
+      <div class="modal checkout-modal">
+        <div class="modal-header">
+          <span>🛍 Оформление заказа</span>
+          <button class="close-btn" id="closeCheckoutBtn">✕</button>
+        </div>
+        <div class="modal-body checkout-body">
+          <div class="form-group">
+            <label>👤 Ваше имя</label>
+            <input type="text" id="customerName" class="form-input" placeholder="Имя" />
+          </div>
+          <div class="form-group">
+            <label>📞 Телефон</label>
+            <input type="tel" id="customerPhone" class="form-input" placeholder="+998 XX XXX XX XX" />
+          </div>
+          <div class="form-group">
+            <label>💬 Комментарий (необязательно)</label>
+            <textarea id="customerComment" class="form-input" rows="2" placeholder="Ваш комментарий..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>🎁 Промо-код</label>
+            <div class="promo-row">
+              <input type="text" id="promoInput" class="form-input" placeholder="Введите код" />
+              <button class="promo-apply-btn" id="promoApplyBtn">Применить</button>
+            </div>
+            <div id="promoResult" class="promo-result"></div>
+          </div>
+          <div class="form-group">
+            <label>📍 Местоположение</label>
+            <button class="geo-btn" id="geoBtn">📍 Определить локацию</button>
+            <div id="geoStatus" class="geo-status"></div>
+          </div>
+
+          <!-- Cart items -->
+          <div class="cart-items-list" id="cartItemsList"></div>
+
+          <div class="order-total-row">
+            <span>Итого:</span>
+            <span class="order-total-value" id="orderTotalValue">0 сум</span>
+          </div>
+          <div class="order-discount-row" id="discountRow" style="display:none">
+            <span>Скидка:</span>
+            <span class="order-discount-value" id="discountValue">0 сум</span>
+          </div>
+          <div class="order-final-row" id="finalRow" style="display:none">
+            <span>К оплате:</span>
+            <span class="order-final-value" id="finalValue">0 сум</span>
+          </div>
+        </div>
+        <button class="submit-btn" id="submitOrderBtn">✅ Подтвердить заказ</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
