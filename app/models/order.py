@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Float, ForeignKey, Text, DateTime, Enum, BigInteger
+from sqlalchemy import Integer, String, Float, ForeignKey, Text, DateTime, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import enum
@@ -16,13 +16,13 @@ class OrderStatus(str, enum.Enum):
 
 
 STATUS_LABELS = {
-    OrderStatus.NEW: "Принят",
-    OrderStatus.CONFIRMED: "Подтвержден",
-    OrderStatus.COOKING: "Готовится",
-    OrderStatus.COURIER_ASSIGNED: "Курьер назначен",
-    OrderStatus.OUT_FOR_DELIVERY: "Передан курьеру",
-    OrderStatus.DELIVERED: "Доставлен",
-    OrderStatus.CANCELED: "Отменен",
+    "NEW": "Принят",
+    "CONFIRMED": "Подтвержден",
+    "COOKING": "Готовится",
+    "COURIER_ASSIGNED": "Курьер назначен",
+    "OUT_FOR_DELIVERY": "Передан курьеру",
+    "DELIVERED": "Доставлен",
+    "CANCELED": "Отменен",
 }
 
 
@@ -36,7 +36,7 @@ class Order(Base):
     phone: Mapped[str] = mapped_column(String(32), nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     total: Mapped[float] = mapped_column(Float, nullable=False)
-    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.NEW)
+    status: Mapped[str] = mapped_column(String(32), default="NEW")
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     delivered_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
