@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, String
 from app.models.user import User
-from app.models.order import Order, OrderStatus
+from app.models.order import Order
 from typing import Optional
 
 
@@ -47,7 +47,8 @@ async def get_referral_stats(session: AsyncSession, user_id: int) -> dict:
 
     delivered_r = await session.execute(
         select(func.count()).where(
-            Order.user_id == user_id, Order.status == OrderStatus.DELIVERED
+            Order.user_id == user_id,
+            cast(Order.status, String) == "DELIVERED"
         )
     )
     delivered_count = delivered_r.scalar() or 0
