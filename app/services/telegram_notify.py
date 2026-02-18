@@ -14,7 +14,7 @@ def format_order_items(order: Order) -> str:
 
 
 def get_admin_channel_keyboard(order: Order) -> InlineKeyboardMarkup:
-    buttons = [
+    return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="✅ Подтвержден", callback_data=f"admin_status:{order.id}:CONFIRMED"),
             InlineKeyboardButton(text="🍳 Готовится", callback_data=f"admin_status:{order.id}:COOKING"),
@@ -23,12 +23,20 @@ def get_admin_channel_keyboard(order: Order) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🚴 Назначить курьера", callback_data=f"assign_courier_start:{order.id}"),
             InlineKeyboardButton(text="❌ Отменить", callback_data=f"admin_status:{order.id}:CANCELED"),
         ],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    ])
 
 
 def get_closed_order_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[])
+
+
+def get_courier_channel_keyboard(order: Order) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Qabul qildim", callback_data=f"courier_accept:{order.id}"),
+            InlineKeyboardButton(text="📦 Yetkazildi", callback_data=f"courier_delivered:{order.id}"),
+        ]
+    ])
 
 
 def format_admin_channel_message(order: Order) -> str:
@@ -36,15 +44,12 @@ def format_admin_channel_message(order: Order) -> str:
     status_label = STATUS_LABELS.get(status, status)
     geo_link = ""
     if order.location_lat and order.location_lng:
-        geo_link = f"\n📍 <a href='https://maps.google.com/?q={order.location_lat},{order.location_lng}'>Локация #{order.order_number}</a>"
-
+        geo_link = f"\n📍 <a href='https://maps.google.com/?q={order.location_lat},{order.location_lng}'>Lokatsiya #{order.order_number}</a>"
     items_text = format_order_items(order)
     user = order.user
     username_str = f"(@{user.username})" if user and user.username else ""
     full_name = user.full_name if user else order.customer_name
-
     emoji = "🆕" if status == "NEW" else "📦"
-
     return (
         f"{emoji} Заказ #{order.order_number}\n"
         f"👤 {full_name} {username_str}\n"
@@ -53,6 +58,23 @@ def format_admin_channel_message(order: Order) -> str:
         f"🕒 {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
         f"📦 Статус: {status_label}{geo_link}\n\n"
         f"🍽️ Состав:\n{items_text}"
+        + (f"\n\n💬 {order.comment}" if order.comment else "")
+    )
+
+
+def format_courier_message(order: Order) -> str:
+    items_text = format_order_items(order)
+    geo_link = (
+        f"https://maps.google.com/?q={order.location_lat},{order.location_lng}"
+        if order.location_lat else "—"
+    )
+    return (
+        f"🚴 Yangi buyurtma #{order.order_number}\n"
+        f"👤 Mijoz: {order.customer_name}\n"
+        f"📞 Telefon: {order.phone}\n"
+        f"💰 Summa: {int(order.total):,} сум\n"
+        f"📍 <a href='{geo_link}'>Lokatsiya</a>\n\n"
+        f"🍽️ Tarkib:\n{items_text}"
         + (f"\n\n💬 {order.comment}" if order.comment else "")
     )
 
@@ -69,7 +91,7 @@ async def send_order_to_channel(bot: Bot, channel_id: int, order: Order) -> int 
         )
         return msg.message_id
     except Exception as e:
-        logger.error(f"Failed to send to channel: {e}")
+        logger.error(f"Failed to send to admin channel {channel_id}: {e}")
         return None
 
 
@@ -95,48 +117,37 @@ async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
     try:
         if status == "NEW":
             text = (
-                f"✅ Ваш заказ принят!\n"
-                f"🆔 Заказ #{order.order_number}\n"
-                f"💰 Сумма: {int(order.total):,} сум\n"
-                f"📦 Статус: {status_label}"
+                f"✅ Buyurtmangiz qabul qilindi!\n"
+                f"🆔 Buyurtma #{order.order_number}\n"
+                f"💰 Summa: {int(order.total):,} сум\n"
+                f"📦 Holat: {status_label}"
             )
         elif status == "OUT_FOR_DELIVERY":
-            text = f"🚴 Ваш заказ #{order.order_number} передан курьеру!"
+            text = f"🚴 Buyurtmangiz #{order.order_number} kuryerga topshirildi!"
         elif status == "DELIVERED":
-            text = f"🎉 Ваш заказ #{order.order_number} успешно доставлен!\nСпасибо, что выбрали FIESTA!"
+            text = f"🎉 Buyurtmangiz #{order.order_number} muvaffaqiyatli yetkazildi!\nFIESTA ni tanlaganingiz uchun rahmat!"
         elif status == "CANCELED":
-            text = f"❌ Ваш заказ #{order.order_number} отменён."
+            text = f"❌ Buyurtmangiz #{order.order_number} bekor qilindi."
         else:
-            text = f"📦 Заказ #{order.order_number}: статус изменён на «{status_label}»"
+            text = f"📦 Buyurtma #{order.order_number}: holat «{status_label}» ga o'zgardi"
         await bot.send_message(chat_id=user_tg_id, text=text)
     except Exception as e:
         logger.error(f"Failed to notify user {user_tg_id}: {e}")
 
 
-async def notify_courier(bot, courier, order: Order) -> bool:
-    items_text = format_order_items(order)
-    geo_link = (
-        f"https://maps.google.com/?q={order.location_lat},{order.location_lng}"
-        if order.location_lat else "—"
-    )
-    text = (
-        f"🚴 Новый заказ #{order.order_number}\n"
-        f"👤 Клиент: {order.customer_name}\n"
-        f"📞 Телефон: {order.phone}\n"
-        f"💰 Сумма: {int(order.total):,} сум\n"
-        f"📍 Локация: {geo_link}\n\n"
-        f"🍽️ Список:\n{items_text}"
-        + (f"\n\n💬 {order.comment}" if order.comment else "")
-    )
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Qabul qildim", callback_data=f"courier_accept:{order.id}"),
-            InlineKeyboardButton(text="📦 Yetkazildi", callback_data=f"courier_delivered:{order.id}"),
-        ]
-    ])
+async def notify_courier_channel(bot: Bot, courier, order: Order) -> bool:
+    """Kuryerning kanaliga buyurtma yuborish"""
+    if not courier.channel_id:
+        logger.error(f"Courier {courier.name} has no channel_id!")
+        return False
     try:
-        await bot.send_message(chat_id=courier.chat_id, text=text, reply_markup=keyboard)
+        await bot.send_message(
+            chat_id=courier.channel_id,
+            text=format_courier_message(order),
+            reply_markup=get_courier_channel_keyboard(order),
+            parse_mode="HTML",
+        )
         return True
     except Exception as e:
-        logger.error(f"Failed to notify courier {courier.chat_id}: {e}")
+        logger.error(f"Failed to send to courier channel {courier.channel_id}: {e}")
         return False
