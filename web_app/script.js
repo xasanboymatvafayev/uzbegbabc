@@ -5,7 +5,7 @@
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.expand(); tg.ready(); }
 
-const API_BASE = "https://uzbegbabc-production.up.railway.app";  // Same origin (FastAPI serves this)
+const API_BASE = "https://web-production-39f07.up.railway.app";  // Same origin (FastAPI serves this)
 const MIN_ORDER = 50000;
 
 // State
