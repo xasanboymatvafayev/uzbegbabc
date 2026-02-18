@@ -1,9 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, cast, String
 from sqlalchemy.orm import selectinload
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
-from app.models.user import User
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
@@ -33,7 +32,7 @@ async def create_order(
         phone=phone,
         comment=comment,
         total=total,
-        status=OrderStatus.NEW,
+        status="NEW",
         location_lat=location_lat,
         location_lng=location_lng,
         promo_code=promo_code,
@@ -87,30 +86,25 @@ async def get_user_orders(session: AsyncSession, user_id: int, limit: int = 10) 
 
 
 async def get_active_orders(session: AsyncSession) -> List[Order]:
-    active_statuses = [
-        OrderStatus.NEW,
-        OrderStatus.CONFIRMED,
-        OrderStatus.COOKING,
-        OrderStatus.COURIER_ASSIGNED,
-        OrderStatus.OUT_FOR_DELIVERY,
-    ]
+    active_statuses = ["NEW", "CONFIRMED", "COOKING", "COURIER_ASSIGNED", "OUT_FOR_DELIVERY"]
     result = await session.execute(
         select(Order)
         .options(selectinload(Order.items), selectinload(Order.user), selectinload(Order.courier))
-        .where(Order.status.in_(active_statuses))
+        .where(cast(Order.status, String).in_(active_statuses))
         .order_by(Order.created_at.desc())
     )
     return result.scalars().all()
 
 
 async def update_order_status(
-    session: AsyncSession, order_id: int, status: OrderStatus, **kwargs
+    session: AsyncSession, order_id: int, status, **kwargs
 ) -> Optional[Order]:
     order = await get_order_by_id(session, order_id)
     if not order:
         return None
-    order.status = status
-    if status == OrderStatus.DELIVERED:
+    # Store as string to avoid enum cast issues
+    order.status = status.value if hasattr(status, 'value') else str(status)
+    if str(status) in ("DELIVERED", "OrderStatus.DELIVERED"):
         order.delivered_at = datetime.now(timezone.utc)
     for k, v in kwargs.items():
         setattr(order, k, v)
