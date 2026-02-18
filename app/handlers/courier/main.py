@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from app.db.session import AsyncSessionFactory
-from app.services.courier import get_courier_by_chat_id
+from app.services.courier import get_courier_by_chat_id, get_all_couriers
 from app.services.orders import get_order_by_id, update_order_status
 from app.services.settings_service import get_shop_channel_id
 from app.services.telegram_notify import update_channel_message, notify_user_status
@@ -16,10 +16,23 @@ async def courier_accept(call: CallbackQuery):
     chat_id = call.from_user.id
     order_id = int(call.data.split(":")[1])
 
+    logger.info(f"courier_accept: chat_id={chat_id}, order_id={order_id}")
+
     async with AsyncSessionFactory() as session:
+        all_couriers = await get_all_couriers(session)
+        logger.info(f"DB couriers: {[(c.chat_id, c.name, c.is_active) for c in all_couriers]}")
+
         courier = await get_courier_by_chat_id(session, chat_id)
-        if not courier or not courier.is_active:
-            await call.answer("❌ Siz ro'yxatdan o'tmagan kuryer siz.", show_alert=True)
+
+        if not courier:
+            await call.answer(
+                f"❌ Siz kuryerlar ro'yxatida yo'qsiz.\nSizning chat_id: {chat_id}\nAdminga yuboring!",
+                show_alert=True
+            )
+            return
+
+        if not courier.is_active:
+            await call.answer("❌ Sizning akkauntingiz o'chirilgan.", show_alert=True)
             return
 
         order = await get_order_by_id(session, order_id)
