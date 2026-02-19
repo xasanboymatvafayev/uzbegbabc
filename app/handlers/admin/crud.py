@@ -9,7 +9,7 @@ from app.services.foods import (
     get_all_categories, create_food, get_foods_by_category, delete_food, create_category, delete_category
 )
 from app.services.promo import create_promo, get_all_promos
-from app.services.courier import add_courier, get_all_couriers, get_courier_by_id
+from app.services.courier import add_courier, get_all_couriers, disable_courier, remove_courier
 from app.services.settings_service import set_setting
 from app.config import settings
 from app.keyboards.admin import get_admin_menu, get_back_keyboard
@@ -34,9 +34,10 @@ async def food_add_start(call: CallbackQuery, state: FSMContext):
     if not cats:
         await call.answer("Avval kategoriya qo'shing!", show_alert=True)
         return
+    await state.set_state(FoodAddStates.waiting_category)
+    await state.update_data(categories={cat.id: cat.name for cat in cats})
     buttons = [[InlineKeyboardButton(text=cat.name, callback_data=f"food_cat:{cat.id}")] for cat in cats]
     buttons.append([InlineKeyboardButton(text="❌ Bekor", callback_data="admin:foods")])
-    await state.set_state(FoodAddStates.waiting_category)
     await call.message.edit_text("📂 Kategoriyani tanlang:", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
 
 
@@ -77,10 +78,14 @@ async def food_price_entered(message: Message, state: FSMContext):
 
 @router.message(FoodAddStates.waiting_rating)
 async def food_rating_entered(message: Message, state: FSMContext):
-    rating = 5.0 if message.text == "-" else float(message.text) if message.text.replace('.','').isdigit() else None
-    if rating is None:
-        await message.answer("❌ Noto'g'ri reyting:")
-        return
+    if message.text == "-":
+        rating = 5.0
+    else:
+        try:
+            rating = float(message.text)
+        except ValueError:
+            await message.answer("❌ Noto'g'ri reyting:")
+            return
     await state.update_data(rating=rating)
     await state.set_state(FoodAddStates.waiting_image)
     await message.answer("🖼 Rasm URL kiriting (yoki - o'tkazib yuborish):")
@@ -91,7 +96,7 @@ async def food_image_entered(message: Message, state: FSMContext):
     image_url = message.text if message.text != "-" else None
     await state.update_data(image_url=image_url)
     await state.set_state(FoodAddStates.waiting_is_new)
-    await message.answer("🆕 Yangi taommi? (ha/yoq):")
+    await message.answer("🆕 Yangi taommi? (ha/yo'q):")
 
 
 @router.message(FoodAddStates.waiting_is_new)
@@ -111,7 +116,10 @@ async def food_is_new_entered(message: Message, state: FSMContext):
             is_new=is_new,
             is_active=True,
         )
-    await message.answer(f"✅ Taom qo'shildi:\n{food.name} — {int(food.price):,} сум", reply_markup=get_admin_menu())
+    await message.answer(
+        f"✅ Taom qo'shildi:\n{food.name} — {int(food.price):,} сум",
+        reply_markup=get_admin_menu()
+    )
 
 
 @router.callback_query(F.data == "food:list")
@@ -122,9 +130,16 @@ async def food_list(call: CallbackQuery):
     if not foods:
         await call.message.edit_text("Taomlar yo'q.", reply_markup=get_back_keyboard())
         return
-    buttons = [[InlineKeyboardButton(text=f"{food.name} — {int(food.price):,}", callback_data=f"food_del:{food.id}")] for food in foods[:20]]
+    buttons = []
+    for food in foods[:20]:
+        buttons.append([
+            InlineKeyboardButton(text=f"{food.name} — {int(food.price):,}", callback_data=f"food_del:{food.id}")
+        ])
     buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin:foods")])
-    await call.message.edit_text("🍔 Taomlar (o'chirish uchun bosing):", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await call.message.edit_text(
+        "🍔 Taomlar (o'chirish uchun bosing):",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
+    )
 
 
 @router.callback_query(F.data.startswith("food_del:"))
@@ -133,7 +148,10 @@ async def food_delete(call: CallbackQuery):
     food_id = int(call.data.split(":")[1])
     async with AsyncSessionFactory() as session:
         ok = await delete_food(session, food_id)
-    await call.answer("✅ O'chirildi" if ok else "❌ Topilmadi")
+    if ok:
+        await call.answer("✅ O'chirildi")
+    else:
+        await call.answer("❌ Topilmadi")
     await food_list(call)
 
 
@@ -162,7 +180,7 @@ async def cat_list(call: CallbackQuery):
     if not cats:
         await call.message.edit_text("Kategoriyalar yo'q.", reply_markup=get_back_keyboard())
         return
-    buttons = [[InlineKeyboardButton(text=cat.name, callback_data=f"cat_del:{cat.id}")] for cat in cats]
+    buttons = [[InlineKeyboardButton(text=f"{c.name}", callback_data=f"cat_del:{c.id}")] for c in cats]
     buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin:categories")])
     await call.message.edit_text("📂 Kategoriyalar (o'chirish):", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
 
@@ -233,9 +251,17 @@ async def promo_limit_entered(message: Message, state: FSMContext):
     data = await state.get_data()
     await state.clear()
     async with AsyncSessionFactory() as session:
-        promo = await create_promo(session, code=data["code"], discount_percent=data["discount"],
-                                   expires_at=data.get("expires_at"), usage_limit=usage_limit)
-    await message.answer(f"✅ Promokod yaratildi:\nKod: {promo.code}\nChegirma: {promo.discount_percent}%", reply_markup=get_admin_menu())
+        promo = await create_promo(
+            session,
+            code=data["code"],
+            discount_percent=data["discount"],
+            expires_at=data.get("expires_at"),
+            usage_limit=usage_limit,
+        )
+    await message.answer(
+        f"✅ Promokod yaratildi:\nKod: {promo.code}\nChegirma: {promo.discount_percent}%",
+        reply_markup=get_admin_menu()
+    )
 
 
 @router.callback_query(F.data == "promo:list")
@@ -249,7 +275,7 @@ async def promo_list(call: CallbackQuery):
     text = "🎁 Promokodlar:\n\n"
     for p in promos:
         status = "✅" if p.is_active else "❌"
-        text += f"{status} {p.code} — {p.discount_percent}% | {p.used_count}/{p.usage_limit or '∞'}\n"
+        text += f"{status} {p.code} — {p.discount_percent}% | Ishlatildi: {p.used_count}/{p.usage_limit or '∞'}\n"
     await call.message.edit_text(text, reply_markup=get_back_keyboard())
 
 
@@ -258,62 +284,32 @@ async def promo_list(call: CallbackQuery):
 @router.callback_query(F.data == "courier:add")
 async def courier_add_start(call: CallbackQuery, state: FSMContext):
     if not is_admin(call.from_user.id): return
-    await state.set_state(CourierAddStates.waiting_name)
-    await call.message.edit_text(
-        "🚴 Kuryer ismini kiriting:"
-    )
-
-
-@router.message(CourierAddStates.waiting_name)
-async def courier_name_entered(message: Message, state: FSMContext):
-    await state.update_data(name=message.text)
     await state.set_state(CourierAddStates.waiting_chat_id)
-    await message.answer(
-        "📱 Kuryer shaxsiy chat_id sini kiriting:\n"
-        "(Kuryer @userinfobot ga /start yuborsab, o'z ID sini oladi)"
+    await call.message.edit_text(
+        "🚴 Kuryer chat ID sini kiriting:\n"
+        "(Kuryer @userinfobot ga /start yuborsab, chat ID oladi)"
     )
 
 
 @router.message(CourierAddStates.waiting_chat_id)
 async def courier_chat_id_entered(message: Message, state: FSMContext):
     try:
-        chat_id = int(message.text.strip())
+        chat_id = int(message.text)
     except ValueError:
         await message.answer("❌ Faqat raqam kiriting:")
         return
     await state.update_data(chat_id=chat_id)
-    await state.set_state(CourierAddStates.waiting_channel_id)
-    await message.answer(
-        "📢 Kuryer kanalining chat_id sini kiriting:\n\n"
-        "Qanday olish:\n"
-        "1. Kanal/guruh yarating\n"
-        "2. Botni admin qiling\n"
-        "3. @getmyid_bot yoki @username_to_id_bot orqali ID oling\n"
-        "4. ID odatda -100 bilan boshlanadi\n\n"
-        "Masalan: -1001234567890"
-    )
+    await state.set_state(CourierAddStates.waiting_name)
+    await message.answer("👤 Kuryer ismini kiriting:")
 
 
-@router.message(CourierAddStates.waiting_channel_id)
-async def courier_channel_id_entered(message: Message, state: FSMContext):
-    try:
-        channel_id = int(message.text.strip())
-    except ValueError:
-        await message.answer("❌ Faqat raqam kiriting (masalan: -1001234567890):")
-        return
+@router.message(CourierAddStates.waiting_name)
+async def courier_name_entered(message: Message, state: FSMContext):
     data = await state.get_data()
     await state.clear()
-
     async with AsyncSessionFactory() as session:
-        courier = await add_courier(session, data["chat_id"], channel_id, data["name"])
-
-    await message.answer(
-        f"✅ Kuryer qo'shildi!\n\n"
-        f"👤 Ism: {courier.name}\n"
-        f"📱 Chat ID: {courier.chat_id}\n"
-        f"📢 Kanal ID: {courier.channel_id}",
-        reply_markup=get_admin_menu()
-    )
+        courier = await add_courier(session, data["chat_id"], message.text)
+    await message.answer(f"✅ Kuryer qo'shildi: {courier.name}", reply_markup=get_admin_menu())
 
 
 @router.callback_query(F.data == "courier:list")
@@ -326,13 +322,23 @@ async def courier_list(call: CallbackQuery):
         return
     buttons = []
     for c in couriers:
-        status = "✅" if c.is_active else "❌"
-        buttons.append([InlineKeyboardButton(
-            text=f"{status} {c.name} | kanal: {c.channel_id or 'yoq'}",
-            callback_data=f"courier_toggle:{c.id}"
-        )])
+        status = "🟢" if c.is_active else "🔴"
+        # Har bir kuryer uchun: [toggle tugmasi] [🗑️ o'chirish tugmasi]
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{status} {c.name} ({c.chat_id})",
+                callback_data=f"courier_toggle:{c.id}"
+            ),
+            InlineKeyboardButton(
+                text="🗑️",
+                callback_data=f"courier_delete:{c.id}"
+            ),
+        ])
     buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin:couriers")])
-    await call.message.edit_text("🚴 Kuryerlar:", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await call.message.edit_text(
+        "🚴 Kuryerlar:\n(Nomga bosing — holat o'zgartirish | 🗑️ — o'chirish)",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
+    )
 
 
 @router.callback_query(F.data.startswith("courier_toggle:"))
@@ -340,11 +346,43 @@ async def courier_toggle(call: CallbackQuery):
     if not is_admin(call.from_user.id): return
     courier_id = int(call.data.split(":")[1])
     async with AsyncSessionFactory() as session:
+        from app.services.courier import get_courier_by_id
         courier = await get_courier_by_id(session, courier_id)
         if courier:
             courier.is_active = not courier.is_active
             await session.commit()
     await call.answer("Holat o'zgartirildi")
+    await courier_list(call)
+
+
+@router.callback_query(F.data.startswith("courier_delete:"))
+async def courier_delete_confirm(call: CallbackQuery):
+    if not is_admin(call.from_user.id): return
+    courier_id = int(call.data.split(":")[1])
+    # Tasdiqlash so'rash
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Ha, o'chir", callback_data=f"courier_delete_yes:{courier_id}"),
+            InlineKeyboardButton(text="❌ Yo'q", callback_data="courier:list"),
+        ]
+    ])
+    await call.message.edit_text(
+        "⚠️ Kuryerni o'chirishni tasdiqlaysizmi?\n\n"
+        "Diqqat: Kuryerga biriktirilgan buyurtmalar saqlanib qoladi.",
+        reply_markup=kb
+    )
+
+
+@router.callback_query(F.data.startswith("courier_delete_yes:"))
+async def courier_delete_yes(call: CallbackQuery):
+    if not is_admin(call.from_user.id): return
+    courier_id = int(call.data.split(":")[1])
+    async with AsyncSessionFactory() as session:
+        ok = await remove_courier(session, courier_id)
+    if ok:
+        await call.answer("✅ Kuryer o'chirildi", show_alert=True)
+    else:
+        await call.answer("❌ Kuryer topilmadi", show_alert=True)
     await courier_list(call)
 
 
@@ -354,7 +392,10 @@ async def courier_toggle(call: CallbackQuery):
 async def settings_shop_channel(call: CallbackQuery, state: FSMContext):
     if not is_admin(call.from_user.id): return
     await state.set_state(SettingsStates.waiting_shop_channel)
-    await call.message.edit_text("📢 Shop channel ID kiriting (masalan: -1001234567890):")
+    await call.message.edit_text(
+        "📢 Shop channel ID kiriting (masalan: -1001234567890):\n"
+        "Bot kanalga admin bo'lishi kerak!"
+    )
 
 
 @router.message(SettingsStates.waiting_shop_channel)
