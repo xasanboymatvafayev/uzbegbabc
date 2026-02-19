@@ -19,8 +19,8 @@ async def get_courier_by_chat_id(session: AsyncSession, chat_id: int) -> Optiona
     return result.scalar_one_or_none()
 
 
-async def add_courier(session: AsyncSession, chat_id: int, channel_id: int, name: str) -> Courier:
-    courier = Courier(chat_id=chat_id, channel_id=channel_id, name=name)
+async def add_courier(session: AsyncSession, chat_id: int, name: str) -> Courier:
+    courier = Courier(chat_id=chat_id, name=name)
     session.add(courier)
     await session.commit()
     await session.refresh(courier)
