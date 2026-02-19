@@ -31,10 +31,10 @@ def get_closed_order_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_courier_channel_keyboard(order: Order) -> InlineKeyboardMarkup:
+    """Kuryer kanaliga yuboriladigan dastlabki tugmalar"""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="✅ Qabul qildim", callback_data=f"courier_accept:{order.id}"),
-            InlineKeyboardButton(text="📦 Yetkazildi", callback_data=f"courier_delivered:{order.id}"),
         ]
     ])
 
@@ -44,7 +44,7 @@ def format_admin_channel_message(order: Order) -> str:
     status_label = STATUS_LABELS.get(status, status)
     geo_link = ""
     if order.location_lat and order.location_lng:
-        geo_link = f"\n📍 <a href='https://maps.google.com/?q={order.location_lat},{order.location_lng}'>Lokatsiya #{order.order_number}</a>"
+        geo_link = f"\n📍 <a href='https://maps.google.com/?q={order.location_lat},{order.location_lng}'>Lokatsiya</a>"
     items_text = format_order_items(order)
     user = order.user
     username_str = f"(@{user.username})" if user and user.username else ""
@@ -64,16 +64,17 @@ def format_admin_channel_message(order: Order) -> str:
 
 def format_courier_message(order: Order) -> str:
     items_text = format_order_items(order)
-    geo_link = (
+    geo_url = (
         f"https://maps.google.com/?q={order.location_lat},{order.location_lng}"
-        if order.location_lat else "—"
+        if order.location_lat else None
     )
+    geo_line = f"📍 <a href='{geo_url}'>Lokatsiya</a>" if geo_url else "📍 Lokatsiya yo'q"
     return (
         f"🚴 Yangi buyurtma #{order.order_number}\n"
         f"👤 Mijoz: {order.customer_name}\n"
         f"📞 Telefon: {order.phone}\n"
         f"💰 Summa: {int(order.total):,} сум\n"
-        f"📍 <a href='{geo_link}'>Lokatsiya</a>\n\n"
+        f"{geo_line}\n\n"
         f"🍽️ Tarkib:\n{items_text}"
         + (f"\n\n💬 {order.comment}" if order.comment else "")
     )
@@ -118,25 +119,25 @@ async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
         if status == "NEW":
             text = (
                 f"✅ Buyurtmangiz qabul qilindi!\n"
-                f"🆔 Buyurtma #{order.order_number}\n"
-                f"💰 Summa: {int(order.total):,} сум\n"
+                f"🆔 #{order.order_number}\n"
+                f"💰 {int(order.total):,} сум\n"
                 f"📦 Holat: {status_label}"
             )
         elif status == "OUT_FOR_DELIVERY":
             text = f"🚴 Buyurtmangiz #{order.order_number} kuryerga topshirildi!"
         elif status == "DELIVERED":
-            text = f"🎉 Buyurtmangiz #{order.order_number} muvaffaqiyatli yetkazildi!\nFIESTA ni tanlaganingiz uchun rahmat!"
+            text = f"🎉 Buyurtmangiz #{order.order_number} yetkazildi!\nFIESTA ni tanlaganingiz uchun rahmat! 🙏"
         elif status == "CANCELED":
             text = f"❌ Buyurtmangiz #{order.order_number} bekor qilindi."
         else:
-            text = f"📦 Buyurtma #{order.order_number}: holat «{status_label}» ga o'zgardi"
+            text = f"📦 Buyurtma #{order.order_number}: «{status_label}»"
         await bot.send_message(chat_id=user_tg_id, text=text)
     except Exception as e:
         logger.error(f"Failed to notify user {user_tg_id}: {e}")
 
 
 async def notify_courier_channel(bot: Bot, courier, order: Order) -> bool:
-    """Kuryerning kanaliga buyurtma yuborish"""
+    """Kuryerning kanaliga buyurtma yuborish - faqat 'Qabul qildim' tugmasi"""
     if not courier.channel_id:
         logger.error(f"Courier {courier.name} has no channel_id!")
         return False
