@@ -9,7 +9,7 @@ class Courier(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     chat_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
-    channel_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # kuryer kanali
+    channel_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     name: Mapped[str] = mapped_column(String(512), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
