@@ -284,32 +284,63 @@ async def promo_list(call: CallbackQuery):
 @router.callback_query(F.data == "courier:add")
 async def courier_add_start(call: CallbackQuery, state: FSMContext):
     if not is_admin(call.from_user.id): return
-    await state.set_state(CourierAddStates.waiting_chat_id)
+    await state.set_state(CourierAddStates.waiting_name)
     await call.message.edit_text(
-        "🚴 Kuryer chat ID sini kiriting:\n"
-        "(Kuryer @userinfobot ga /start yuborsab, chat ID oladi)"
+        "🚴 Yangi kuryer qo'shish\n\n"
+        "1️⃣ Kuryer ismini kiriting:"
+    )
+
+
+@router.message(CourierAddStates.waiting_name)
+async def courier_name_entered(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(CourierAddStates.waiting_chat_id)
+    await message.answer(
+        "2️⃣ Kuryerning shaxsiy Telegram chat ID sini kiriting:\n\n"
+        "📌 Kuryer @userinfobot ga /start yuborsab, o'z ID sini oladi"
     )
 
 
 @router.message(CourierAddStates.waiting_chat_id)
 async def courier_chat_id_entered(message: Message, state: FSMContext):
     try:
-        chat_id = int(message.text)
+        chat_id = int(message.text.strip())
     except ValueError:
-        await message.answer("❌ Faqat raqam kiriting:")
+        await message.answer("❌ Faqat raqam kiriting (masalan: 123456789):")
         return
     await state.update_data(chat_id=chat_id)
-    await state.set_state(CourierAddStates.waiting_name)
-    await message.answer("👤 Kuryer ismini kiriting:")
+    await state.set_state(CourierAddStates.waiting_channel_id)
+    await message.answer(
+        "3️⃣ Kuryerning kanal/guruh chat ID sini kiriting:\n\n"
+        "📌 Kanal/guruhga @userinfobot qo'shib, u yuborgan ID ni kiriting\n"
+        "⚠️ Bot o'sha kanalga admin bo'lishi kerak!\n"
+        "Misol: -1001234567890"
+    )
 
 
-@router.message(CourierAddStates.waiting_name)
-async def courier_name_entered(message: Message, state: FSMContext):
+@router.message(CourierAddStates.waiting_channel_id)
+async def courier_channel_id_entered(message: Message, state: FSMContext):
+    try:
+        channel_id = int(message.text.strip())
+    except ValueError:
+        await message.answer("❌ Noto'g'ri format. Misol: -1001234567890")
+        return
     data = await state.get_data()
     await state.clear()
     async with AsyncSessionFactory() as session:
-        courier = await add_courier(session, data["chat_id"], message.text)
-    await message.answer(f"✅ Kuryer qo'shildi: {courier.name}", reply_markup=get_admin_menu())
+        courier = await add_courier(
+            session,
+            chat_id=data["chat_id"],
+            name=data["name"],
+            channel_id=channel_id,
+        )
+    await message.answer(
+        f"✅ Kuryer qo'shildi!\n\n"
+        f"👤 Ism: {courier.name}\n"
+        f"🆔 Chat ID: {courier.chat_id}\n"
+        f"📢 Kanal ID: {courier.channel_id}",
+        reply_markup=get_admin_menu()
+    )
 
 
 @router.callback_query(F.data == "courier:list")
@@ -323,10 +354,10 @@ async def courier_list(call: CallbackQuery):
     buttons = []
     for c in couriers:
         status = "🟢" if c.is_active else "🔴"
-        # Har bir kuryer uchun: [toggle tugmasi] [🗑️ o'chirish tugmasi]
+        channel_info = f" | 📢{c.channel_id}" if c.channel_id else " | 📢—"
         buttons.append([
             InlineKeyboardButton(
-                text=f"{status} {c.name} ({c.chat_id})",
+                text=f"{status} {c.name}{channel_info}",
                 callback_data=f"courier_toggle:{c.id}"
             ),
             InlineKeyboardButton(
@@ -359,7 +390,6 @@ async def courier_toggle(call: CallbackQuery):
 async def courier_delete_confirm(call: CallbackQuery):
     if not is_admin(call.from_user.id): return
     courier_id = int(call.data.split(":")[1])
-    # Tasdiqlash so'rash
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="✅ Ha, o'chir", callback_data=f"courier_delete_yes:{courier_id}"),
