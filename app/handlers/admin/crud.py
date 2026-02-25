@@ -88,13 +88,36 @@ async def food_rating_entered(message: Message, state: FSMContext):
             return
     await state.update_data(rating=rating)
     await state.set_state(FoodAddStates.waiting_image)
-    await message.answer("🖼 Rasm URL kiriting (yoki - o'tkazib yuborish):")
+    await message.answer(
+        "🖼 Rasm yuboring (galereyadan yoki fayldan)\n"
+        "Yoki o'tkazib yuborish uchun - yozing:"
+    )
 
 
 @router.message(FoodAddStates.waiting_image)
 async def food_image_entered(message: Message, state: FSMContext):
-    image_url = message.text if message.text != "-" else None
-    await state.update_data(image_url=image_url)
+    # Rasm yuborilgan bo'lsa — file_id olamiz
+    if message.photo:
+        # Eng yuqori sifatli rasmni olamiz (oxirgi element)
+        photo = message.photo[-1]
+        file = await message.bot.get_file(photo.file_id)
+        token = message.bot.token
+        file_url = f"https://api.telegram.org/file/bot{token}/{file.file_path}"
+        await state.update_data(image_url=file_url)
+    elif message.document and message.document.mime_type and message.document.mime_type.startswith("image/"):
+        # Fayl sifatida yuborilgan rasm
+        file = await message.bot.get_file(message.document.file_id)
+        token = message.bot.token
+        file_url = f"https://api.telegram.org/file/bot{token}/{file.file_path}"
+        await state.update_data(image_url=file_url)
+    elif message.text == "-":
+        await state.update_data(image_url=None)
+    else:
+        await message.answer(
+            "❌ Rasm yuboring (foto yoki fayl shaklida)\n"
+            "Yoki o'tkazib yuborish uchun - yozing:"
+        )
+        return
     await state.set_state(FoodAddStates.waiting_is_new)
     await message.answer("🆕 Yangi taommi? (ha/yo'q):")
 
