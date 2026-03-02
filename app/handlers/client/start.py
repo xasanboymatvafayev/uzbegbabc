@@ -36,7 +36,7 @@ async def cmd_start(message: Message):
         )
 
     await message.answer(
-        f"Добро пожаловать в FIESTA! {message.from_user.full_name} 🎉\n"
+        f"Добро пожаловать в DIAMOND! {message.from_user.full_name} 🎉\n"
         f"Для заказа перейдите по кнопке ➡️",
         reply_markup=get_main_keyboard(),
     )
@@ -90,13 +90,13 @@ async def shop_cmd(message: Message):
 @router.message(F.text == "ℹ️ Информация о нас")
 async def about_us(message: Message):
     text = (
-        "🌟 Добро Пожаловать в FIESTA !\n\n"
-        "📍 Наш адрес: Хорезмская область, г.Хива, махаллинский сход граждан Гиламчи\n"
-        "🏢 Ориентир: Школа №12 Оруджева\n"
-        "📞 Контактный номер: +998 91 420 15 15\n"
-        "🕙 Рабочие часы: 24/7\n"
-        "📷 Мы в Instagram: <a href='https://www.instagram.com/fiesta.khiva?igsh=Z3VoMzE0eGx0ZTVo'>fiesta.khiva</a>\n"
-        "🔗 <a href='https://maps.app.goo.gl/dpBVHBWX1K7NTYVR7'>Найти нас на карте</a>"
+        "🌟 Добро Пожаловать в DIAMOND !\n\n"
+        "📍 Наш адрес: Хорезмская область, г.Хива\n"
+        "🏢 Ориентир: 102\n"
+        "📞 Контактный номер: +998 99 189 80 82\n"
+        "🕙 Рабочие часы: 9:00-04:00\n"
+        "📷 Мы в Instagram: <a href='https://www.instagram.com/diamond_burger_xiva?igsh=MTM1MTNoc3c5N2RiZg=='>diamond_burger_xiva</a>\n"
+        "🔗 <a href='https://maps.app.goo.gl/GwC2MuB32kRnSvGN6'>Найти нас на карте</a>"
     )
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
