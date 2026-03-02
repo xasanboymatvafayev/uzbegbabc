@@ -1,9 +1,10 @@
 import os
-import uvicorn
-import asyncio
 import logging
+from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher
+from aiogram.types import Update
 from aiogram.fsm.storage.redis import RedisStorage
+
 from app.config import settings
 from app.db.session import init_db
 from app.handlers.client import start as client_start
@@ -13,36 +14,46 @@ from app.handlers.admin import crud as admin_crud
 from app.handlers.admin import orders as admin_orders
 from app.handlers.courier import main as courier_main
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+app = FastAPI()
 
-async def main():
-    logger.info("Starting Fiesta Bot...")
+# Bot va Dispatcher
+bot = Bot(token=settings.BOT_TOKEN)
+storage = RedisStorage.from_url(settings.REDIS_URL)
+dp = Dispatcher(storage=storage)
+
+# Routerlarni ulash
+dp.include_router(client_start.router)
+dp.include_router(client_webapp.router)
+dp.include_router(admin_main.router)
+dp.include_router(admin_crud.router)
+dp.include_router(admin_orders.router)
+dp.include_router(courier_main.router)
+
+
+# 🚀 Startup
+@app.on_event("startup")
+async def on_startup():
+    logger.info("Starting Fiesta Bot (Webhook mode)...")
     await init_db()
 
-    storage = RedisStorage.from_url(settings.REDIS_URL)
-    bot = Bot(token=settings.BOT_TOKEN)
-    dp = Dispatcher(storage=storage)
-
-    # Register routers
-    dp.include_router(client_start.router)
-    dp.include_router(client_webapp.router)
-    dp.include_router(admin_main.router)
-    dp.include_router(admin_crud.router)
-    dp.include_router(admin_orders.router)
-    dp.include_router(courier_main.router)
-
-    logger.info("Bot started. Polling...")
-    try:
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
-    finally:
-        await bot.session.close()
+    webhook_url = f"{settings.WEBHOOK_URL}/webhook"
+    await bot.set_webhook(webhook_url)
+    logger.info(f"Webhook set to {webhook_url}")
 
 
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+# 📩 Telegram webhook endpoint
+@app.post("/webhook")
+async def telegram_webhook(request: Request):
+    data = await request.json()
+    update = Update.model_validate(data)
+    await dp.feed_update(bot, update)
+    return {"ok": True}
+
+
+# 🟢 Healthcheck (Railway uchun kerak)
+@app.get("/")
+async def root():
+    return {"status": "running"}
