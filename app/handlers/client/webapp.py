@@ -1,16 +1,16 @@
 from aiogram import Router, F
 from aiogram.types import Message
+from sqlalchemy import select
+import json
+import logging
+
 from app.db.session import AsyncSessionFactory
-from app.services.orders import create_order
+from app.services.orders import create_order, set_channel_message_id
 from app.services.promo import validate_promo, use_promo
 from app.services.settings_service import get_shop_channel_id
 from app.services.telegram_notify import send_order_to_channel, notify_user_status
-from app.services.orders import set_channel_message_id
-from app.models.order import OrderStatus
-from sqlalchemy import select
 from app.models.user import User
-import json
-import logging
+
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -21,8 +21,8 @@ async def handle_webapp_data(message: Message):
     try:
         data = json.loads(message.web_app_data.data)
     except Exception as e:
-        logger.error(f"Failed to parse WebApp data: {e}")
-        await message.answer("❌ Ошибка при обработке заказа. Попробуйте ещё раз.")
+        logger.error(f"WebApp JSON parse error: {e}")
+        await message.answer("❌ Ошибка при обработке заказа.")
         return
 
     if data.get("type") != "order_create":
@@ -48,20 +48,24 @@ async def handle_webapp_data(message: Message):
         return
 
     async with AsyncSessionFactory() as session:
-        result = await session.execute(select(User).where(User.tg_id == message.from_user.id))
+        result = await session.execute(
+            select(User).where(User.tg_id == message.from_user.id)
+        )
         user = result.scalar_one_or_none()
+
         if not user:
             await message.answer("❌ Пользователь не найден. Используйте /start")
             return
 
-        # Validate promo
+        # Promo tekshirish
         if promo_code:
             promo_info = await validate_promo(session, promo_code)
             if not promo_info:
-                await message.answer("❌ Промо-код недействителен или истёк.")
+                await message.answer("❌ Промо-код недействителен.")
                 return
             await use_promo(session, promo_code)
 
+        # Order yaratish
         order = await create_order(
             session=session,
             user_id=user.id,
@@ -75,12 +79,16 @@ async def handle_webapp_data(message: Message):
             promo_code=promo_code,
         )
 
-        # Notify user
+        # Userga status yuborish
         await notify_user_status(message.bot, message.from_user.id, order)
 
-        # Send to admin channel
+        # Admin kanalga yuborish
         shop_channel_id = await get_shop_channel_id(session)
         if shop_channel_id:
-            msg_id = await send_order_to_channel(message.bot, shop_channel_id, order)
+            msg_id = await send_order_to_channel(
+                message.bot, shop_channel_id, order
+            )
             if msg_id:
                 await set_channel_message_id(session, order.id, msg_id)
+
+    await message.answer("✅ Ваш заказ успешно принят! Ожидайте подтверждения.")
