@@ -1,25 +1,30 @@
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
+from sqlalchemy import select
+import logging
+
 from app.db.session import AsyncSessionFactory
 from app.services.referral import get_or_create_user, get_referral_stats
 from app.services.orders import get_user_orders
 from app.services.promo import create_promo, generate_promo_code
 from app.keyboards.client import get_main_keyboard, get_shop_inline
 from app.models.order import STATUS_LABELS
-from app.config import settings
-from sqlalchemy import select
 from app.models.user import User
-import logging
+from app.config import settings
+
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
+# ================== START ==================
+
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     args = message.text.split()
     ref_tg_id = None
+
     if len(args) > 1:
         try:
             ref_tg_id = int(args[1])
@@ -27,7 +32,7 @@ async def cmd_start(message: Message):
             pass
 
     async with AsyncSessionFactory() as session:
-        user, is_new = await get_or_create_user(
+        await get_or_create_user(
             session=session,
             tg_id=message.from_user.id,
             username=message.from_user.username,
@@ -42,6 +47,8 @@ async def cmd_start(message: Message):
     )
 
 
+# ================== MY ORDERS ==================
+
 @router.message(F.text == "📦 Мои заказы")
 async def my_orders(message: Message):
     async with AsyncSessionFactory() as session:
@@ -49,6 +56,7 @@ async def my_orders(message: Message):
             select(User).where(User.tg_id == message.from_user.id)
         )
         user = result.scalar_one_or_none()
+
         if not user:
             await message.answer("Вы не зарегистрированы. Используйте /start")
             return
@@ -57,26 +65,32 @@ async def my_orders(message: Message):
 
     if not orders:
         await message.answer(
-            "В данный момент у вас нет активных заказов в нашем магазине.\n"
+            "В данный момент у вас нет активных заказов.\n"
             "Чтобы открыть магазин, введите команду — /shop"
         )
         return
 
     text = "📦 Ваши последние заказы:\n\n"
+
     for order in orders:
         status_label = STATUS_LABELS.get(order.status, order.status)
+
         text += (
             f"🆔 Заказ #{order.order_number} | "
             f"{order.created_at.strftime('%d.%m %H:%M')} | "
             f"💰 {int(order.total):,} сум | "
             f"📦 {status_label}\n"
         )
+
         for item in order.items:
             text += f"  • {item.name_snapshot} x{item.qty} — {int(item.line_total):,} сум\n"
+
         text += "\n"
 
     await message.answer(text)
 
+
+# ================== SHOP ==================
 
 @router.message(Command("shop"))
 @router.message(F.text == "🛍 Заказать")
@@ -87,30 +101,22 @@ async def shop_cmd(message: Message):
     )
 
 
-@router.message(F.text == "ℹ️ Информация о нас")
-async def about_us(message: Message):
-    text = (
-        "🌟 Добро Пожаловать в DIAMOND !\n\n"
-        "📍 Наш адрес: Хорезмская область, г.Хива\n"
-        "🏢 Ориентир: 102\n"
-        "📞 Контактный номер: +998 99 189 80 82\n"
-        "🕙 Рабочие часы: 9:00-04:00\n"
-        "📷 Мы в Instagram: <a href='https://www.instagram.com/diamond_burger_xiva?igsh=MTM1MTNoc3c5N2RiZg=='>diamond_burger_xiva</a>\n"
-        "🔗 <a href='https://maps.app.goo.gl/GwC2MuB32kRnSvGN6'>Найти нас на карте</a>"
-    )
-    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
-
+# ================== INVITE FRIEND ==================
 
 @router.message(F.text == "👥 Пригласить друга")
 async def invite_friend(message: Message):
     async with AsyncSessionFactory() as session:
-        result = await session.execute(select(User).where(User.tg_id == message.from_user.id))
+        result = await session.execute(
+            select(User).where(User.tg_id == message.from_user.id)
+        )
         user = result.scalar_one_or_none()
+
         if not user:
             await message.answer("Используйте /start для регистрации")
             return
 
         stats = await get_referral_stats(session, user.id)
+
         ref_link = f"https://t.me/{settings.BOT_USERNAME}?start={message.from_user.id}"
 
         text = (
@@ -119,15 +125,16 @@ async def invite_friend(message: Message):
             f"🛒 Оформили заказов: {stats['orders_count']}\n"
             f"💰 Оплатили заказов: {stats['paid_or_delivered_count']}\n\n"
             f"👤 Ваша реферальная ссылка:\n{ref_link}\n\n"
-            f"Пригласите трех человек и вы получите от нас промо-код со скидкой 15%"
+            f"Пригласите трех человек и получите скидку 15%"
         )
 
-        # Give promo if eligible
+        # Promo berish sharti
         if stats["ref_count"] >= 3 and not user.promo_given:
             code = generate_promo_code()
             promo = await create_promo(session, code=code, discount_percent=15)
             user.promo_given = True
             await session.commit()
-            text += f"\n\n🎉 Поздравляем! Ваш промо-код: <b>{promo.code}</b> (скидка 15%)"
+
+            text += f"\n\n🎉 Ваш промо-код: <b>{promo.code}</b> (скидка 15%)"
 
     await message.answer(text, parse_mode="HTML")
