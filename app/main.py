@@ -1,6 +1,10 @@
 import os
 import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
+import uvicorn
+
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from aiogram.fsm.storage.redis import RedisStorage
@@ -14,12 +18,15 @@ from app.handlers.admin import crud as admin_crud
 from app.handlers.admin import orders as admin_orders
 from app.handlers.courier import main as courier_main
 
+
+# ---------------- LOGGING ---------------- #
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
 
-# Bot va Dispatcher
+# ---------------- BOT INIT ---------------- #
+
 bot = Bot(token=settings.BOT_TOKEN)
 storage = RedisStorage.from_url(settings.REDIS_URL)
 dp = Dispatcher(storage=storage)
@@ -33,18 +40,30 @@ dp.include_router(admin_orders.router)
 dp.include_router(courier_main.router)
 
 
-# 🚀 Startup
-@app.on_event("startup")
-async def on_startup():
-    logger.info("Starting Fiesta Bot (Webhook mode)...")
+# ---------------- FASTAPI LIFESPAN ---------------- #
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 Starting Bot in Webhook mode")
+
     await init_db()
 
     webhook_url = f"{settings.WEBHOOK_URL}/webhook"
     await bot.set_webhook(webhook_url)
-    logger.info(f"Webhook set to {webhook_url}")
+
+    logger.info(f"✅ Webhook set to: {webhook_url}")
+
+    yield
+
+    logger.info("🛑 Shutting down...")
+    await bot.session.close()
 
 
-# 📩 Telegram webhook endpoint
+app = FastAPI(lifespan=lifespan)
+
+
+# ---------------- TELEGRAM WEBHOOK ---------------- #
+
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     data = await request.json()
@@ -53,7 +72,15 @@ async def telegram_webhook(request: Request):
     return {"ok": True}
 
 
-# 🟢 Healthcheck (Railway uchun kerak)
+# ---------------- HEALTHCHECK ---------------- #
+
 @app.get("/")
 async def root():
     return {"status": "running"}
+
+
+# ---------------- RUN (Railway uchun) ---------------- #
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
