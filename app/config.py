@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ADMIN_IDS: str = ""
     DB_URL: str
     REDIS_URL: str
+    WEBHOOK_URL: str = ""          # ← QO'SHILDI (Railway URL: https://yourapp.up.railway.app)
     SHOP_CHANNEL_ID: int = 0
     COURIER_CHANNEL_ID: int = 0
     WEBAPP_URL: str = "https://example.com"
