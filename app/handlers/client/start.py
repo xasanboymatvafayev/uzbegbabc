@@ -129,11 +129,16 @@ async def invite_friend(message: Message):
         )
 
         # Promo berish sharti
+       # Promo berish sharti
         if stats["ref_count"] >= 3 and not user.promo_given:
             code = generate_promo_code()
             promo = await create_promo(session, code=code, discount_percent=15)
             user.promo_given = True
             await session.commit()
+
+            text += f"\n\n🎉 Ваш промо-код: <b>{promo.code}</b> (скидка 15%)"
+
+    await message.answer(text, parse_mode="HTML")
 
 
 # ================== INFO ==================
@@ -142,13 +147,9 @@ async def invite_friend(message: Message):
 async def info_handler(message: Message):
     await message.answer(
         "🍔 <b>DIAMOND</b> — служба доставки быстрого питания\n\n"
-        "📍 Адрес: Хорезмская область, Хива\n"
-        "📞 Телефон: +998 99 189 80 82\n"
-        "🕐 Время работы: 09:00 — 04:00\n\n"
+        "📍 Адрес: Хорезмская область\n"
+        "📞 Телефон: +998 XX XXX XX XX\n"
+        "🕐 Время работы: 09:00 — 23:00\n\n"
         "Если есть вопросы — обращайтесь!",
         parse_mode="HTML"
     )
-
-            text += f"\n\n🎉 Ваш промо-код: <b>{promo.code}</b> (скидка 15%)"
-
-    await message.answer(text, parse_mode="HTML")
