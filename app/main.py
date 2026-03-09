@@ -1,7 +1,9 @@
 import os
 import logging
+import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
@@ -10,7 +12,7 @@ from app.config import settings
 from app.db.session import init_db
 
 # ---------------- LOGGING ---------------- #
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # ---------------- BOT INIT ---------------- #
@@ -18,7 +20,6 @@ bot = Bot(token=settings.BOT_TOKEN)
 storage = RedisStorage.from_url(settings.REDIS_URL)
 dp = Dispatcher(storage=storage)
 
-# Routerlarni ulash — faqat bir marta, module darajasida
 def setup_routers():
     from app.handlers.client import start as client_start
     from app.handlers.client import webapp as client_webapp
@@ -41,7 +42,7 @@ setup_routers()
 async def lifespan(app: FastAPI):
     logger.info("🚀 Starting Bot in Webhook mode")
     await init_db()
-    webhook_url = f"{settings.WEBHOOK_URL}/webhook"
+    webhook_url = f"{os.environ.get('WEBHOOK_URL', '')}/webhook"
     await bot.set_webhook(webhook_url)
     logger.info(f"✅ Webhook set to: {webhook_url}")
     yield
@@ -53,17 +54,23 @@ app = FastAPI(lifespan=lifespan)
 # ---------------- TELEGRAM WEBHOOK ---------------- #
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
-    data = await request.json()
-    update = Update.model_validate(data)
-    await dp.feed_update(bot, update)
-    return {"ok": True}
+    try:
+        data = await request.json()
+        logger.debug(f"📨 Update received: {data}")
+        update = Update.model_validate(data)
+        await dp.feed_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"❌ Webhook error: {e}")
+        logger.error(traceback.format_exc())
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 # ---------------- HEALTHCHECK ---------------- #
 @app.get("/")
 async def root():
     return {"status": "running"}
 
-# ---------------- RUN (Railway uchun) ---------------- #
+# ---------------- RUN ---------------- #
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
