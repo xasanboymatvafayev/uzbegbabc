@@ -135,6 +135,20 @@ async def invite_friend(message: Message):
             user.promo_given = True
             await session.commit()
 
+
+# ================== INFO ==================
+
+@router.message(F.text == "ℹ️ Информация о нас")
+async def info_handler(message: Message):
+    await message.answer(
+        "🍔 <b>DIAMOND</b> — служба доставки быстрого питания\n\n"
+        "📍 Адрес: Хорезмская область, Хива\n"
+        "📞 Телефон: +998 99 189 80 82\n"
+        "🕐 Время работы: 09:00 — 04:00\n\n"
+        "Если есть вопросы — обращайтесь!",
+        parse_mode="HTML"
+    )
+
             text += f"\n\n🎉 Ваш промо-код: <b>{promo.code}</b> (скидка 15%)"
 
     await message.answer(text, parse_mode="HTML")
