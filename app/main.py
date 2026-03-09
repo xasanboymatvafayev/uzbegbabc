@@ -3,21 +3,22 @@ import logging
 import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
-from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
 from app.db.session import init_db
 
 # ---------------- LOGGING ---------------- #
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ---------------- BOT INIT ---------------- #
 bot = Bot(token=settings.BOT_TOKEN)
-storage = RedisStorage.from_url(settings.REDIS_URL)
+storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 def setup_routers():
@@ -51,12 +52,34 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------- API ROUTES ---------------- #
+from app.api import (
+    api_categories,
+    api_foods,
+    api_promo_validate,
+    verify_telegram_init_data,
+    get_db,
+)
+from fastapi import Query, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+app.add_api_route("/api/categories", api_categories, methods=["GET"])
+app.add_api_route("/api/foods", api_foods, methods=["GET"])
+app.add_api_route("/api/promo/validate", api_promo_validate, methods=["GET"])
+
 # ---------------- TELEGRAM WEBHOOK ---------------- #
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     try:
         data = await request.json()
-        logger.debug(f"📨 Update received: {data}")
         update = Update.model_validate(data)
         await dp.feed_update(bot, update)
         return {"ok": True}
@@ -65,9 +88,12 @@ async def telegram_webhook(request: Request):
         logger.error(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# ---------------- HEALTHCHECK ---------------- #
+# ---------------- WEBAPP ---------------- #
 @app.get("/")
-async def root():
+async def serve_webapp():
+    index = "web_app/index.html"
+    if os.path.exists(index):
+        return FileResponse(index)
     return {"status": "running"}
 
 # ---------------- RUN ---------------- #
