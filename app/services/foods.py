@@ -52,9 +52,9 @@ async def delete_food(session: AsyncSession, food_id: int) -> bool:
 
 
 async def create_category(session: AsyncSession, name: str) -> Category:
-    # Fix sequence before insert to avoid duplicate key errors
+    # Bo'sh jadvalda ham ishlaydi — GREATEST bilan minimum 1 ta'minlanadi
     await session.execute(
-        text("SELECT setval('categories_id_seq', (SELECT COALESCE(MAX(id), 0) FROM categories))")
+        text("SELECT setval('categories_id_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM categories), 1))")
     )
     cat = Category(name=name)
     session.add(cat)
