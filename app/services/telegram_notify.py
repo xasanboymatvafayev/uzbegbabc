@@ -104,7 +104,7 @@ async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
         elif status == OrderStatus.OUT_FOR_DELIVERY:
             text = f"🚴 Buyurtmangiz #{order.order_number} kuryerga topshirildi! Tez orada yetkaziladi."
         elif status == OrderStatus.DELIVERED:
-            text = f"🎉 Buyurtmangiz #{order.order_number} yetkazildi!\nRahmat, FIESTA ni tanlaganingiz uchun!"
+            text = f"🎉 Buyurtmangiz #{order.order_number} yetkazildi!\nRahmat, DIAMOND ni tanlaganingiz uchun!"
         elif status == OrderStatus.CANCELED:
             text = f"❌ Buyurtmangiz #{order.order_number} bekor qilindi."
         else:
