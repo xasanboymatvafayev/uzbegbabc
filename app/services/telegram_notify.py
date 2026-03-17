@@ -3,6 +3,7 @@ from app.models.order import Order, OrderStatus, STATUS_LABELS
 from app.models.courier import Courier
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import logging
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +46,13 @@ def format_admin_channel_message(order: Order) -> str:
     courier_info = ""
     if order.courier:
         courier_info = f"\n🚴 Kuryer: {order.courier.name}"
-
+uzb_time = order.created_at + timedelta(hours=5)
     return (
         f"{'🆕' if order.status == OrderStatus.NEW else '📦'} Zakaz #{order.order_number}\n"
         f"👤 {user.full_name} {username_str}\n"
         f"📞 {order.phone}\n"
         f"💰 {int(order.total):,} сум\n"
-        f"🕒 {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
+        f"🕒 {uzb_time.strftime('%d.%m.%Y %H:%M')}\n"
         f"📦 Status: {status_label}{courier_info}{geo_link}\n\n"
         f"🍽️ Tarkib:\n{items_text}"
         + (f"\n\n💬 {order.comment}" if order.comment else "")
