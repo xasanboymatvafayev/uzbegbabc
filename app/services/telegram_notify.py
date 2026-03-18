@@ -46,7 +46,8 @@ def format_admin_channel_message(order: Order) -> str:
     courier_info = ""
     if order.courier:
         courier_info = f"\n🚴 Kuryer: {order.courier.name}"
-uzb_time = order.created_at + timedelta(hours=5)
+
+    uzb_time = order.created_at + timedelta(hours=5)
     return (
         f"{'🆕' if order.status == OrderStatus.NEW else '📦'} Zakaz #{order.order_number}\n"
         f"👤 {user.full_name} {username_str}\n"
@@ -116,13 +117,6 @@ async def notify_user_status(bot: Bot, user_tg_id: int, order: Order):
 
 
 async def notify_courier(bot: Bot, courier: Courier, order: Order) -> bool:
-    """
-    Buyurtma haqida xabarni kuryer KANALIGA yuboradi.
-    Tugmalarni faqat courier.chat_id ga mos odam bosa oladi
-    (courier_main.py da tekshiriladi).
-    """
-    # Kuryer kanalini aniqlash: courier.channel_id bor bo'lsa — u yerga,
-    # yo'q bo'lsa — shaxsiy chat_id ga yuborish
     target = courier.channel_id if courier.channel_id else courier.chat_id
 
     if not target:
@@ -160,7 +154,6 @@ async def notify_courier(bot: Bot, courier: Courier, order: Order) -> bool:
         return True
     except Exception as e:
         logger.error(f"Failed to notify courier channel {target}: {e}")
-        # Agar kanal ishlamasa, shaxsiy chat ga urinish
         if courier.channel_id and courier.chat_id != target:
             try:
                 await bot.send_message(
