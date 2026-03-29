@@ -1,18 +1,17 @@
 // ============================================================
-// FIESTA WebApp — script.js
+// DIAMOND WebApp — script.js
 // ============================================================
 
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.expand(); tg.ready(); }
 
-const API_BASE = "https://web-production-7776.up.railway.app";  // Same origin (FastAPI serves this)
+const API_BASE = "https://web-production-e8572.up.railway.app";
 const MIN_ORDER = 50000;
 
-// State
 let state = {
   categories: [],
   foods: [],
-  cart: {},           // { food_id: { food, qty } }
+  cart: {},
   selectedCat: 'all',
   sortBy: '',
   search: '',
@@ -21,9 +20,6 @@ let state = {
   location: null,
 };
 
-// ============================================================
-// DOM Refs
-// ============================================================
 const $ = id => document.getElementById(id);
 const foodsContainer = $('foodsContainer');
 const loadingEl = $('loadingEl');
@@ -46,12 +42,7 @@ const promoInput = $('promoInput');
 const promoApplyBtn = $('promoApplyBtn');
 const promoResult = $('promoResult');
 
-// ============================================================
-// API
-// ============================================================
-function getInitData() {
-  return tg?.initData || '';
-}
+function getInitData() { return tg?.initData || ''; }
 
 async function apiFetch(endpoint) {
   const sep = endpoint.includes('?') ? '&' : '?';
@@ -62,16 +53,11 @@ async function apiFetch(endpoint) {
   return resp.json();
 }
 
-// ============================================================
-// Init
-// ============================================================
 async function init() {
-  // Pre-fill user name if available
   if (tg?.initDataUnsafe?.user) {
     const u = tg.initDataUnsafe.user;
     $('customerName').value = [u.first_name, u.last_name].filter(Boolean).join(' ');
   }
-
   try {
     const [cats, foods] = await Promise.all([
       apiFetch('/api/categories'),
@@ -82,16 +68,12 @@ async function init() {
     renderCategories();
     renderFoods();
   } catch (e) {
-    loadingEl.textContent = '⚠️ Ошибка загрузки. Попробуйте позже.';
+    loadingEl.innerHTML = `<span>⚠️ Xatolik yuz berdi. Keyinroq urinib ko'ring.</span>`;
     console.error(e);
   }
 }
 
-// ============================================================
-// Categories
-// ============================================================
 function renderCategories() {
-  // Remove existing (except "Все")
   const allBtn = categoriesScroll.querySelector('[data-id="all"]');
   categoriesScroll.innerHTML = '';
   categoriesScroll.appendChild(allBtn);
@@ -114,40 +96,32 @@ function renderCategories() {
   });
 }
 
-// ============================================================
-// Foods
-// ============================================================
 function getFilteredFoods() {
   let foods = [...state.foods];
-
   if (state.selectedCat !== 'all') {
     foods = foods.filter(f => String(f.category_id) === String(state.selectedCat));
   }
-
   if (state.search.trim()) {
     const q = state.search.toLowerCase();
     foods = foods.filter(f => f.name.toLowerCase().includes(q) || (f.description || '').toLowerCase().includes(q));
   }
-
   if (state.sortBy === 'rating') foods.sort((a, b) => b.rating - a.rating);
   else if (state.sortBy === 'new') foods.sort((a, b) => b.id - a.id);
   else if (state.sortBy === 'price_asc') foods.sort((a, b) => a.price - b.price);
   else if (state.sortBy === 'price_desc') foods.sort((a, b) => b.price - a.price);
-
   return foods;
 }
 
 function renderFoods() {
   const foods = getFilteredFoods();
   foodsContainer.innerHTML = '';
-
   if (!foods.length) {
-    foodsContainer.innerHTML = `<div class="empty-state"><div class="emoji">🍽️</div><div>Ничего не найдено</div></div>`;
+    foodsContainer.innerHTML = `<div class="empty-state"><div class="emoji">🍽️</div><div>Hech narsa topilmadi</div></div>`;
     return;
   }
-
-  foods.forEach(food => {
+  foods.forEach((food, i) => {
     const card = createFoodCard(food);
+    card.style.animationDelay = `${i * 0.04}s`;
     foodsContainer.appendChild(card);
   });
 }
@@ -160,26 +134,25 @@ function createFoodCard(food) {
   const imgHtml = food.image_url
     ? `<img class="food-img" src="${escHtml(food.image_url)}" alt="${escHtml(food.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : '';
-
   const placeholder = `<div class="food-img-placeholder" ${food.image_url ? 'style="display:none"' : ''}>🍔</div>`;
   const badge = food.is_new ? `<span class="badge-new">NEW</span>` : '';
   const inCart = state.cart[food.id];
   const qty = inCart ? inCart.qty : 0;
 
   card.innerHTML = `
-    ${imgHtml}${placeholder}
+    <div class="food-img-wrap">${imgHtml}${placeholder}</div>
     <div class="food-info">
       ${badge ? `<div class="food-badge">${badge}</div>` : ''}
       <div class="food-name">${escHtml(food.name)}</div>
       ${food.description ? `<div class="food-desc">${escHtml(food.description)}</div>` : ''}
       <div class="food-bottom">
-        <div>
+        <div class="food-meta">
           <div class="food-price">${fmt(food.price)}</div>
           <div class="food-rating">⭐ ${food.rating.toFixed(1)}</div>
         </div>
         <div class="cart-ctrl" id="ctrl_${food.id}">
           ${qty === 0
-            ? `<button class="add-btn" data-id="${food.id}">+ Добавить</button>`
+            ? `<button class="add-btn" data-id="${food.id}">+ Qo'shish</button>`
             : `<div class="qty-ctrl">
                 <button class="qty-btn" data-action="dec" data-id="${food.id}">−</button>
                 <span class="qty-num">${qty}</span>
@@ -191,13 +164,9 @@ function createFoodCard(food) {
     </div>
   `;
 
-  // Events
   card.querySelector('.add-btn')?.addEventListener('click', () => changeQty(food, 1));
   card.querySelectorAll('.qty-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const delta = btn.dataset.action === 'inc' ? 1 : -1;
-      changeQty(food, delta);
-    });
+    btn.addEventListener('click', () => changeQty(food, btn.dataset.action === 'inc' ? 1 : -1));
   });
 
   return card;
@@ -208,7 +177,7 @@ function updateCardCtrl(food) {
   if (!ctrl) return;
   const qty = state.cart[food.id]?.qty || 0;
   ctrl.innerHTML = qty === 0
-    ? `<button class="add-btn" data-id="${food.id}">+ Добавить</button>`
+    ? `<button class="add-btn" data-id="${food.id}">+ Qo'shish</button>`
     : `<div class="qty-ctrl">
         <button class="qty-btn" data-action="dec" data-id="${food.id}">−</button>
         <span class="qty-num">${qty}</span>
@@ -220,63 +189,41 @@ function updateCardCtrl(food) {
   });
 }
 
-// ============================================================
-// Cart
-// ============================================================
 function changeQty(food, delta) {
   const current = state.cart[food.id]?.qty || 0;
   const newQty = current + delta;
-  if (newQty <= 0) {
-    delete state.cart[food.id];
-  } else {
-    state.cart[food.id] = { food, qty: newQty };
-  }
+  if (newQty <= 0) delete state.cart[food.id];
+  else state.cart[food.id] = { food, qty: newQty };
   updateCardCtrl(food);
   updateCartPanel();
 }
 
-function cartItems() {
-  return Object.values(state.cart);
-}
-
-function cartRawTotal() {
-  return cartItems().reduce((sum, { food, qty }) => sum + food.price * qty, 0);
-}
-
+function cartItems() { return Object.values(state.cart); }
+function cartRawTotal() { return cartItems().reduce((s, { food, qty }) => s + food.price * qty, 0); }
 function cartFinalTotal() {
   const raw = cartRawTotal();
-  if (state.promoDiscount > 0) {
-    return raw * (1 - state.promoDiscount / 100);
-  }
-  return raw;
+  return state.promoDiscount > 0 ? raw * (1 - state.promoDiscount / 100) : raw;
 }
 
 function updateCartPanel() {
   const items = cartItems();
   const total = cartRawTotal();
   const count = items.reduce((s, { qty }) => s + qty, 0);
-
-  if (count === 0) {
-    cartPanel.style.display = 'none';
-    return;
-  }
+  if (count === 0) { cartPanel.style.display = 'none'; return; }
   cartPanel.style.display = 'flex';
   cartCount.textContent = count;
   cartTotal.textContent = fmt(total);
   checkoutBtn.disabled = total < MIN_ORDER;
-  checkoutBtn.title = total < MIN_ORDER ? `Минимум ${fmt(MIN_ORDER)}` : '';
+  checkoutBtn.title = total < MIN_ORDER ? `Minimal: ${fmt(MIN_ORDER)}` : '';
 }
 
-// ============================================================
-// Checkout
-// ============================================================
 function renderCheckout() {
   const items = cartItems();
   const list = $('cartItemsList');
   list.innerHTML = items.map(({ food, qty }) => `
     <div class="cart-item-row">
       <span class="cart-item-name">${escHtml(food.name)}</span>
-      <span class="cart-item-qty">x${qty}</span>
+      <span class="cart-item-qty">×${qty}</span>
       <span class="cart-item-price">${fmt(food.price * qty)}</span>
     </div>
   `).join('');
@@ -301,82 +248,61 @@ checkoutBtn.addEventListener('click', () => {
   renderCheckout();
   checkoutModal.style.display = 'flex';
 });
+closeCheckoutBtn.addEventListener('click', () => { checkoutModal.style.display = 'none'; });
 
-closeCheckoutBtn.addEventListener('click', () => {
-  checkoutModal.style.display = 'none';
-});
-
-// ============================================================
-// Geo
-// ============================================================
 geoBtn.addEventListener('click', () => {
-  geoStatus.textContent = '⏳ Определяем...';
+  geoStatus.textContent = '⏳ Aniqlanmoqda...';
   geoStatus.className = 'geo-status';
   if (!navigator.geolocation) {
-    geoStatus.textContent = '❌ Geolocation не поддерживается';
+    geoStatus.textContent = '❌ Geolocation qo\'llab-quvvatlanmaydi';
     return;
   }
   navigator.geolocation.getCurrentPosition(
     pos => {
       state.location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      geoStatus.textContent = `✅ Локация: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+      geoStatus.textContent = `✅ ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
       geoStatus.className = 'geo-status ok';
     },
-    err => {
-      geoStatus.textContent = '❌ Не удалось получить локацию. Разрешите доступ.';
-    },
+    () => { geoStatus.textContent = '❌ Ruxsat berilmadi'; },
     { timeout: 10000 }
   );
 });
 
-// ============================================================
-// Promo
-// ============================================================
 promoApplyBtn.addEventListener('click', async () => {
   const code = promoInput.value.trim();
   if (!code) return;
-  promoResult.textContent = '⏳ Проверяем...';
+  promoResult.textContent = '⏳ Tekshirilmoqda...';
   promoResult.className = 'promo-result';
   try {
     const data = await apiFetch(`/api/promo/validate?code=${encodeURIComponent(code)}`);
     state.promoCode = data.code;
     state.promoDiscount = data.discount_percent;
-    promoResult.textContent = `✅ Промо-код применён! Скидка ${data.discount_percent}%`;
+    promoResult.textContent = `✅ Promo-kod qo'llandi! Chegirma: ${data.discount_percent}%`;
     promoResult.className = 'promo-result success';
     renderCheckout();
-  } catch (e) {
+  } catch {
     state.promoCode = null;
     state.promoDiscount = 0;
-    promoResult.textContent = '❌ Промо-код не найден или истёк';
+    promoResult.textContent = '❌ Promo-kod topilmadi yoki muddati o\'tgan';
     promoResult.className = 'promo-result error';
   }
 });
 
-// ============================================================
-// Submit Order
-// ============================================================
 submitOrderBtn.addEventListener('click', async () => {
   const name = $('customerName').value.trim();
   const phone = $('customerPhone').value.trim();
-
-  if (!name) { alert('Введите ваше имя'); return; }
-  if (!phone) { alert('Введите номер телефона'); return; }
-  if (!state.location) { alert('Укажите местоположение для доставки'); return; }
+  if (!name) { alert('Ismingizni kiriting'); return; }
+  if (!phone) { alert('Telefon raqamingizni kiriting'); return; }
+  if (!state.location) { alert('Yetkazib berish uchun joylashuvni ko\'rsating'); return; }
 
   const items = cartItems().map(({ food, qty }) => ({
-    food_id: food.id,
-    name: food.name,
-    qty: qty,
-    price: food.price,
+    food_id: food.id, name: food.name, qty, price: food.price,
   }));
-
-  const raw = cartRawTotal();
-  const final = cartFinalTotal();
 
   const payload = {
     type: 'order_create',
     items,
-    total: Math.round(final),
+    total: Math.round(cartFinalTotal()),
     customer_name: name,
     phone,
     comment: $('customerComment').value.trim() || null,
@@ -386,28 +312,25 @@ submitOrderBtn.addEventListener('click', async () => {
   };
 
   submitOrderBtn.disabled = true;
-  submitOrderBtn.textContent = '⏳ Отправляем...';
+  submitOrderBtn.textContent = '⏳ Yuborilmoqda...';
 
   try {
     if (tg) {
       tg.sendData(JSON.stringify(payload));
       tg.close();
     } else {
-      alert('Заказ: ' + JSON.stringify(payload, null, 2));
+      alert('Buyurtma: ' + JSON.stringify(payload, null, 2));
       submitOrderBtn.disabled = false;
-      submitOrderBtn.textContent = '✅ Подтвердить заказ';
+      submitOrderBtn.textContent = '✅ Buyurtmani tasdiqlash';
     }
   } catch (e) {
     console.error(e);
     submitOrderBtn.disabled = false;
-    submitOrderBtn.textContent = '✅ Подтвердить заказ';
-    alert('Ошибка при отправке заказа.');
+    submitOrderBtn.textContent = '✅ Buyurtmani tasdiqlash';
+    alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
   }
 });
 
-// ============================================================
-// Filter Modal
-// ============================================================
 filterBtn.addEventListener('click', () => { filterModal.style.display = 'flex'; });
 closeFilterBtn.addEventListener('click', () => { filterModal.style.display = 'none'; });
 filterModal.addEventListener('click', e => { if (e.target === filterModal) filterModal.style.display = 'none'; });
@@ -420,24 +343,13 @@ applyFilter.addEventListener('click', () => {
   renderFoods();
 });
 
-// ============================================================
-// Search
-// ============================================================
 let searchTimer;
 searchInput.addEventListener('input', () => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    state.search = searchInput.value;
-    renderFoods();
-  }, 250);
+  searchTimer = setTimeout(() => { state.search = searchInput.value; renderFoods(); }, 250);
 });
 
-// ============================================================
-// Helpers
-// ============================================================
-function fmt(n) {
-  return Math.round(n).toLocaleString('ru-RU') + ' сум';
-}
+function fmt(n) { return Math.round(n).toLocaleString('uz-UZ') + ' so\'m'; }
 
 function escHtml(str) {
   const div = document.createElement('div');
@@ -445,7 +357,4 @@ function escHtml(str) {
   return div.innerHTML;
 }
 
-// ============================================================
-// Start
-// ============================================================
 init();
