@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DIAMOND — Заказать</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,15 +14,22 @@
     <!-- HEADER -->
     <header class="header">
       <div class="header-top">
-        <h1 class="logo">🌟 DIAMOND</h1>
+        <div class="logo-wrap">
+          <span class="logo-icon">◆</span>
+          <h1 class="logo">DIAMOND</h1>
+        </div>
         <div class="search-wrap">
-          <input type="text" id="searchInput" placeholder="Поиск блюд..." class="search-input" />
-          <button class="filter-btn" id="filterBtn" title="Фильтры">⚙️</button>
+          <span class="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <input type="text" id="searchInput" placeholder="Qidirish..." class="search-input" />
+          <button class="filter-btn" id="filterBtn" title="Filtrlar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+          </button>
         </div>
       </div>
-      <!-- Categories -->
       <div class="categories-scroll" id="categoriesScroll">
-        <button class="cat-btn active" data-id="all">Все</button>
+        <button class="cat-btn active" data-id="all">Barchasi</button>
       </div>
     </header>
 
@@ -28,96 +37,93 @@
     <div class="modal-overlay" id="filterModal" style="display:none">
       <div class="modal">
         <div class="modal-header">
-          <span>🔽 Фильтр</span>
-          <button class="close-btn" id="closeFilterBtn">✕</button>
+          <span>Saralash</span>
+          <button class="close-btn" id="closeFilterBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <div class="modal-body">
-          <label class="radio-label">
-            <input type="radio" name="sort" value="" checked> По умолчанию
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="sort" value="rating"> ⭐ По рейтингу
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="sort" value="new"> 🆕 Новинки
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="sort" value="price_asc"> 💸 Сначала дешевле
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="sort" value="price_desc"> 💎 Сначала дороже
-          </label>
+          <label class="radio-label"><input type="radio" name="sort" value="" checked> Standart</label>
+          <label class="radio-label"><input type="radio" name="sort" value="rating"> ⭐ Reyting bo'yicha</label>
+          <label class="radio-label"><input type="radio" name="sort" value="new"> 🆕 Yangiliklar</label>
+          <label class="radio-label"><input type="radio" name="sort" value="price_asc"> Arzondan qimmatga</label>
+          <label class="radio-label"><input type="radio" name="sort" value="price_desc"> Qimmatdan arzonga</label>
         </div>
-        <button class="apply-btn" id="applyFilter">Применить</button>
+        <button class="apply-btn" id="applyFilter">Qo'llash</button>
       </div>
     </div>
 
     <!-- FOODS GRID -->
     <main class="foods-container" id="foodsContainer">
-      <div class="loading" id="loadingEl">Загрузка...</div>
+      <div class="loading" id="loadingEl">
+        <div class="loading-spinner"></div>
+        <span>Yuklanmoqda...</span>
+      </div>
     </main>
 
     <!-- CART PANEL -->
     <div class="cart-panel" id="cartPanel" style="display:none">
       <div class="cart-info">
-        <span class="cart-count" id="cartCount">0</span>
-        <span class="cart-label">Корзина</span>
-        <span class="cart-total" id="cartTotal">0 сум</span>
+        <div class="cart-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-count" id="cartCount">0</span>
+        </div>
+        <span class="cart-label">Savatcha</span>
+        <span class="cart-total" id="cartTotal">0 so'm</span>
       </div>
-      <button class="checkout-btn" id="checkoutBtn">Оформить →</button>
+      <button class="checkout-btn" id="checkoutBtn">Buyurtma →</button>
     </div>
 
     <!-- CHECKOUT MODAL -->
     <div class="modal-overlay" id="checkoutModal" style="display:none">
       <div class="modal checkout-modal">
         <div class="modal-header">
-          <span>🛍 Оформление заказа</span>
-          <button class="close-btn" id="closeCheckoutBtn">✕</button>
+          <span>Buyurtma berish</span>
+          <button class="close-btn" id="closeCheckoutBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <div class="modal-body checkout-body">
           <div class="form-group">
-            <label>👤 Ваше имя</label>
-            <input type="text" id="customerName" class="form-input" placeholder="Имя" />
+            <label>Ismingiz</label>
+            <input type="text" id="customerName" class="form-input" placeholder="Ism" />
           </div>
           <div class="form-group">
-            <label>📞 Телефон</label>
+            <label>Telefon</label>
             <input type="tel" id="customerPhone" class="form-input" placeholder="+998 XX XXX XX XX" />
           </div>
           <div class="form-group">
-            <label>💬 Комментарий (необязательно)</label>
-            <textarea id="customerComment" class="form-input" rows="2" placeholder="Ваш комментарий..."></textarea>
+            <label>Izoh (ixtiyoriy)</label>
+            <textarea id="customerComment" class="form-input" rows="2" placeholder="Izohingiz..."></textarea>
           </div>
           <div class="form-group">
-            <label>🎁 Промо-код</label>
+            <label>Promo-kod</label>
             <div class="promo-row">
-              <input type="text" id="promoInput" class="form-input" placeholder="Введите код" />
-              <button class="promo-apply-btn" id="promoApplyBtn">Применить</button>
+              <input type="text" id="promoInput" class="form-input" placeholder="Kodni kiriting" />
+              <button class="promo-apply-btn" id="promoApplyBtn">Qo'llash</button>
             </div>
             <div id="promoResult" class="promo-result"></div>
           </div>
           <div class="form-group">
-            <label>📍 Местоположение</label>
-            <button class="geo-btn" id="geoBtn">📍 Определить локацию</button>
+            <label>Manzil</label>
+            <button class="geo-btn" id="geoBtn">📍 Joylashuvni aniqlash</button>
             <div id="geoStatus" class="geo-status"></div>
           </div>
-
-          <!-- Cart items -->
           <div class="cart-items-list" id="cartItemsList"></div>
-
           <div class="order-total-row">
-            <span>Итого:</span>
-            <span class="order-total-value" id="orderTotalValue">0 сум</span>
+            <span>Jami:</span>
+            <span class="order-total-value" id="orderTotalValue">0 so'm</span>
           </div>
           <div class="order-discount-row" id="discountRow" style="display:none">
-            <span>Скидка:</span>
-            <span class="order-discount-value" id="discountValue">0 сум</span>
+            <span>Chegirma:</span>
+            <span class="order-discount-value" id="discountValue">0 so'm</span>
           </div>
           <div class="order-final-row" id="finalRow" style="display:none">
-            <span>К оплате:</span>
-            <span class="order-final-value" id="finalValue">0 сум</span>
+            <span>To'lov:</span>
+            <span class="order-final-value" id="finalValue">0 so'm</span>
           </div>
         </div>
-        <button class="submit-btn" id="submitOrderBtn">✅ Подтвердить заказ</button>
+        <button class="submit-btn" id="submitOrderBtn">✅ Buyurtmani tasdiqlash</button>
       </div>
     </div>
   </div>
