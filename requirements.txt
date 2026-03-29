@@ -8,4 +8,4 @@ fastapi
 uvicorn[standard]
 python-multipart
 aiohttp
-psycopg2
+psycopg2-binary
