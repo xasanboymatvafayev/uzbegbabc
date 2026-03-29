@@ -4,11 +4,11 @@
 # ============================================================
 
 # ---------- SOZLAMALAR (o'zgartiring) ----------
-$PG_HOST     = "localhost"
+$PG_HOST     = "postgres.railway.internal"
 $PG_PORT     = "5432"
 $PG_USER     = "postgres"
-$PG_PASSWORD = "your_password"     # <-- o'z parolingizni kiriting
-$PG_DB       = "fastfood_menu"
+$PG_PASSWORD = "ZYQtvsNytbMvAxQQsAwmCbNGMiDuAvVU"     # <-- o'z parolingizni kiriting
+$PG_DB       = "railway"
 # ------------------------------------------------
 
 $env:PGPASSWORD = $PG_PASSWORD
