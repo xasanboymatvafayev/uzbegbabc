@@ -38,12 +38,6 @@ def setup_routers():
 
 setup_routers()
 
-
-@app.get("/admin")
-async def serve_admin():
-    from fastapi.responses import FileResponse
-    return FileResponse("web_app/admin.html")
-
 # ---------------- FASTAPI LIFESPAN ---------------- #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -66,6 +60,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---------------- ADMIN API ROUTER ---------------- #
+from app.admin_api import router as admin_router
+app.include_router(admin_router)
+
 # ---------------- API ROUTES ---------------- #
 from app.api import (
     api_categories,
@@ -80,9 +78,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 app.add_api_route("/api/categories", api_categories, methods=["GET"])
 app.add_api_route("/api/foods", api_foods, methods=["GET"])
 app.add_api_route("/api/promo/validate", api_promo_validate, methods=["GET"])
-# ADMIN ROUTER — shu qatorni qo'shing:
-from app.admin_api import router as admin_router
-app.include_router(admin_router)
 
 # ---------------- TELEGRAM WEBHOOK ---------------- #
 @app.post("/webhook")
@@ -96,6 +91,14 @@ async def telegram_webhook(request: Request):
         logger.error(f"❌ Webhook error: {e}")
         logger.error(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+# ---------------- ADMIN PANEL ---------------- #
+@app.get("/admin")
+async def serve_admin():
+    admin_file = "web_app/admin.html"
+    if os.path.exists(admin_file):
+        return FileResponse(admin_file)
+    return JSONResponse(status_code=404, content={"error": "admin.html topilmadi"})
 
 # ---------------- WEBAPP ---------------- #
 @app.get("/")
