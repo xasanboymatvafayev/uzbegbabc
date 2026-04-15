@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diamond FastFood — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #22223a;
+    --accent: #f5a623;
+    --accent2: #e8341a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --text: #f0f0f8;
+    --muted: #7070a0;
+    --border: rgba(255,255,255,0.07);
+    --radius: 12px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform .3s ease;
+  }
+
+  .logo {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .logo span { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  .nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .2s;
+    position: relative;
+    border-radius: 0;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(245,166,35,0.08);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+
+  .nav-section {
+    padding: 16px 20px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: pulse 2s infinite;
+  }
+  .dot.online { background: var(--green); }
+  .dot.offline { background: var(--red); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+  }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, rgba(245,166,35,0.1), transparent 70%);
+    pointer-events: none;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 1px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .stat-icon { position: absolute; top: 18px; right: 20px; font-size: 28px; opacity: 0.3; }
+
+  /* ── PERIOD TABS ── */
+  .period-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .period-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .period-tab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .period-tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+  /* ── TABLES ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-title {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    padding: 12px 22px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  td {
+    padding: 14px 22px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .badge.NEW { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .badge.CONFIRMED { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .badge.COOKING { background: rgba(245,166,35,0.15); color: #fbbf24; }
+  .badge.COURIER_ASSIGNED { background: rgba(245,166,35,0.2); color: var(--accent); }
+  .badge.OUT_FOR_DELIVERY { background: rgba(249,115,22,0.15); color: #fb923c; }
+  .badge.DELIVERED { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .badge.CANCELED { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #e8941f; transform: translateY(-1px); }
+  .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+  .btn-ghost { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .btn-success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+  .btn-success:hover { background: rgba(34,197,94,0.25); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+  .btn-icon { padding: 7px; border-radius: 6px; }
+
+  /* ── FORMS & MODALS ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 480px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+    color: var(--accent);
+  }
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-select option { background: var(--surface); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── CARDS GRID ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .food-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .food-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
+  .food-img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: var(--muted);
+  }
+  .food-img img { width: 100%; height: 100%; object-fit: cover; }
+  .food-body { padding: 14px; }
+  .food-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .food-cat { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .food-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .food-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ── LOADING ── */
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    animation: slideIn .3s ease;
+    min-width: 280px;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .toast-item.success { background: rgba(34,197,94,0.9); color: #fff; }
+  .toast-item.error { background: rgba(239,68,68,0.9); color: #fff; }
+  .toast-item.info { background: rgba(59,130,246,0.9); color: #fff; }
+
+  /* ── SEARCH & FILTER ── */
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--surface);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 14px;
+    padding: 28px;
+    width: 360px;
+    max-width: 95vw;
+    text-align: center;
+    animation: slideUp .2s ease;
+  }
+  .confirm-icon { font-size: 40px; margin-bottom: 12px; }
+  .confirm-title { font-weight: 700; font-size: 18px; margin-bottom: 8px; }
+  .confirm-msg { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+  .confirm-actions { display: flex; gap: 12px; }
+
+  /* ── STATUS SELECT ── */
+  .status-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  /* ── TOP FOODS ── */
+  .top-list { list-style: none; }
+  .top-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .top-item:last-child { border-bottom: none; }
+  .top-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--muted);
+    width: 24px;
+    text-align: center;
+  }
+  .top-rank.gold { color: var(--accent); }
+  .top-rank.silver { color: #c0c0c0; }
+  .top-rank.bronze { color: #cd7f32; }
+  .top-food-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .top-food-qty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── COURIER CARD ── */
+  .courier-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color .2s;
+  }
+  .courier-card:hover { border-color: rgba(255,255,255,0.15); }
+  .courier-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--surface3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .courier-info { flex: 1; }
+  .courier-name { font-weight: 600; font-size: 15px; }
+  .courier-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .courier-status { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .courier-status.active { color: var(--green); }
+  .courier-status.inactive { color: var(--red); }
+
+  /* ── PROMO CARD ── */
+  .promo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .promo-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(245,166,35,0.1);
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px dashed rgba(245,166,35,0.3);
+  }
+  .promo-info { flex: 1; }
+  .promo-discount { font-size: 22px; font-weight: 700; }
+  .promo-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── ORDER DETAIL ── */
+  .order-items-list { margin: 16px 0; }
+  .order-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .order-item-row:last-child { border-bottom: none; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* ── MOBILE ── */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .menu-toggle { display: block; }
+    .content { padding: 16px; }
+    .topbar { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <h1>💎 Diamond</h1>
+      <span>FastFood Admin</span>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Dashboard</div>
+      <button class="nav-item active" onclick="goTo('dashboard', this)">
+        <span class="nav-icon">📊</span> Statistika
+      </button>
+      <button class="nav-item" onclick="goTo('orders', this)">
+        <span class="nav-icon">📦</span> Buyurtmalar
+      </button>
+
+      <div class="nav-section">Menyu</div>
+      <button class="nav-item" onclick="goTo('foods', this)">
+        <span class="nav-icon">🍔</span> Taomlar
+      </button>
+      <button class="nav-item" onclick="goTo('categories', this)">
+        <span class="nav-icon">📂</span> Kategoriyalar
+      </button>
+
+      <div class="nav-section">Boshqaruv</div>
+      <button class="nav-item" onclick="goTo('couriers', this)">
+        <span class="nav-icon">🚴</span> Kuryerlar
+      </button>
+      <button class="nav-item" onclick="goTo('promos', this)">
+        <span class="nav-icon">🎁</span> Promokodlar
+      </button>
+
+      <div class="nav-section">Tizim</div>
+      <button class="nav-item" onclick="goTo('settings', this)">
+        <span class="nav-icon">⚙️</span> Sozlamalar
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="page-title" id="page-title">Statistika</div>
+      </div>
+      <div class="api-status">
+        <div class="dot" id="api-dot"></div>
+        <span id="api-label">Tekshirilmoqda...</span>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ========== DASHBOARD ========== -->
+      <section class="section active" id="section-dashboard">
+        <div class="period-tabs">
+          <button class="period-tab active" onclick="loadStats('today', this)">📅 Bugun</button>
+          <button class="period-tab" onclick="loadStats('week', this)">📆 Hafta</button>
+          <button class="period-tab" onclick="loadStats('month', this)">🗓 Oy</button>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-label">Jami buyurtmalar</div><div class="stat-value" id="s-total">—</div></div>
+          <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Yetkazildi</div><div class="stat-value" id="s-delivered">—</div><div class="stat-sub" id="s-delivered-sub"></div></div>
+          <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">Tushum</div><div class="stat-value" id="s-revenue">—</div></div>
+          <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-label">Aktiv buyurtmalar</div><div class="stat-value" id="s-active">—</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="table-wrap">
+            <div class="table-header"><div class="table-title">🏆 Top Taomlar</div></div>
+            <div style="padding:16px 22px" id="top-foods-wrap">
+              <div style="text-align:center;padding:20px"><div class="spinner"></div></div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-header">
+              <div class="table-title">📦 Aktiv buyurtmalar</div>
+              <button class="btn btn-ghost btn-sm" onclick="goTo('orders', document.querySelector('[onclick*=orders]'))">Barchasi →</button>
+            </div>
+            <div id="mini-orders-wrap">
+              <div style="text-align:center;padding:30px"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== ORDERS ========== -->
+      <section class="section" id="section-orders">
+        <div class="toolbar">
+          <input type="text" class="search-input" placeholder="🔍 Buyurtma raqami yoki mijoz ismi..." id="order-search" oninput="filterOrders()">
+          <select class="form-select" style="width:auto" id="order-status-filter" onchange="filterOrders()">
+            <option value="">Barcha statuslar</option>
+            <option value="NEW">Yangi</option>
+            <option value="CONFIRMED">Tasdiqlangan</option>
+            <option value="COOKING">Tayyorlanmoqda</option>
+            <option value="COURIER_ASSIGNED">Kuryer tayinlangan</option>
+            <option value="OUT_FOR_DELIVERY">Yo'lda</option>
+            <option value="DELIVERED">Yetkazildi</option>
+            <option value="CANCELED">Bekor</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadOrders()">🔄 Yangilash</button>
+        </div>
+
+        <div class="table-wrap">
+          <div id="orders-table-body">
+            <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== FOODS ========== -->
+      <section class="section" id="section-foods">
+        <div class="section-header">
+          <div class="section-headline">Taomlar ro'yxati</div>
+          <button class="btn btn-primary" onclick="openFoodModal()">➕ Yangi taom</button>
+        </div>
+        <div class="toolbar">
+          <input type="text" class="search-input" placeholder="🔍 Taom nomi..." id="food-search" oninput="filterFoods()">
+          <select class="form-select" style="width:auto" id="food-cat-filter" onchange="filterFoods()">
+            <option value="">Barcha kategoriyalar</option>
+          </select>
+        </div>
+        <div class="cards-grid" id="foods-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- ========== CATEGORIES ========== -->
+      <section class="section" id="section-categories">
+        <div class="section-header">
+          <div class="section-headline">Kategoriyalar</div>
+          <button class="btn btn-primary" onclick="openCatModal()">➕ Yangi kategoriya</button>
+        </div>
+        <div class="table-wrap" id="categories-wrap">
+          <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- ========== COURIERS ========== -->
+      <section class="section" id="section-couriers">
+        <div class="section-header">
+          <div class="section-headline">Kuryerlar</div>
+          <button class="btn btn-primary" onclick="openCourierModal()">➕ Kuryer qo'shish</button>
+        </div>
+        <div class="cards-grid" id="couriers-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+          <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- ========== PROMOS ========== -->
+      <section class="section" id="section-promos">
+        <div class="section-header">
+          <div class="section-headline">Promokodlar</div>
+          <button class="btn btn-primary" onclick="openPromoModal()">➕ Promokod yaratish</button>
+        </div>
+        <div class="cards-grid" id="promos-grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+          <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- ========== SETTINGS ========== -->
+      <section class="section" id="section-settings">
+        <div class="section-headline" style="margin-bottom:24px">Sozlamalar</div>
+        <div style="max-width:520px;display:flex;flex-direction:column;gap:16px">
+
+          <div class="table-wrap" style="padding:24px">
+            <div class="table-title" style="margin-bottom:16px">📢 Shop kanal ID</div>
+            <div class="form-group" style="margin:0">
+              <input type="text" class="form-input" id="setting-shop-channel" placeholder="-1001234567890">
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px">
+              <button class="btn btn-primary btn-sm" onclick="saveSetting('shop_channel_id', document.getElementById('setting-shop-channel').value)">Saqlash</button>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="padding:24px">
+            <div class="table-title" style="margin-bottom:16px">🚴 Courier kanal ID</div>
+            <div class="form-group" style="margin:0">
+              <input type="text" class="form-input" id="setting-courier-channel" placeholder="-1001234567890">
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px">
+              <button class="btn btn-primary btn-sm" onclick="saveSetting('courier_channel_id', document.getElementById('setting-courier-channel').value)">Saqlash</button>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="padding:24px">
+            <div class="table-title" style="margin-bottom:8px">🔗 Backend API</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:12px" id="api-url-display"></div>
+            <button class="btn btn-ghost btn-sm" onclick="checkApi()">🔄 Aloqani tekshirish</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- .content -->
+  </main>
+</div>
+
+<!-- ─── MODALS ─── -->
+
+<!-- Food Modal -->
+<div class="modal-overlay" id="food-modal">
+  <div class="modal">
+    <div class="modal-title" id="food-modal-title">Yangi taom qo'shish</div>
+    <input type="hidden" id="food-edit-id">
+    <div class="form-group">
+      <label class="form-label">Kategoriya *</label>
+      <select class="form-select" id="food-category"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Taom nomi *</label>
+      <input type="text" class="form-input" id="food-name" placeholder="Masalan: Donner Kebab">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tavsif</label>
+      <textarea class="form-textarea" id="food-desc" placeholder="Qisqa tavsif (ixtiyoriy)"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Narx (so'm) *</label>
+        <input type="number" class="form-input" id="food-price" placeholder="25000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reyting (1-5)</label>
+        <input type="number" class="form-input" id="food-rating" placeholder="5" min="1" max="5" step="0.1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rasm URL</label>
+      <input type="text" class="form-input" id="food-image" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Yangi taommi?</label>
+      <select class="form-select" id="food-is-new">
+        <option value="false">Yo'q</option>
+        <option value="true">Ha — 🆕 belgi</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('food-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveFood()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal" style="width:360px">
+    <div class="modal-title">Yangi kategoriya</div>
+    <div class="form-group">
+      <label class="form-label">Kategoriya nomi *</label>
+      <input type="text" class="form-input" id="cat-name" placeholder="Masalan: Burgerlar">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('cat-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveCategory()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Courier Modal -->
+<div class="modal-overlay" id="courier-modal">
+  <div class="modal">
+    <div class="modal-title">Kuryer qo'shish</div>
+    <div class="form-group">
+      <label class="form-label">Kuryer ismi *</label>
+      <input type="text" class="form-input" id="courier-name" placeholder="Masalan: Jasur">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telegram Chat ID *</label>
+      <input type="number" class="form-input" id="courier-chat-id" placeholder="123456789">
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Kuryer @userinfobot ga /start yuborsab, o'z ID sini oladi</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kanal/Guruh Chat ID *</label>
+      <input type="number" class="form-input" id="courier-channel-id" placeholder="-1001234567890">
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Bot o'sha kanalga admin bo'lishi kerak</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('courier-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="saveCourier()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Promo Modal -->
+<div class="modal-overlay" id="promo-modal">
+  <div class="modal">
+    <div class="modal-title">Promokod yaratish</div>
+    <div class="form-group">
+      <label class="form-label">Kod *</label>
+      <input type="text" class="form-input" id="promo-code" placeholder="FIESTA20" style="text-transform:uppercase">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Chegirma % *</label>
+        <input type="number" class="form-input" id="promo-discount" placeholder="20" min="1" max="90">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Limit (bo'sh = cheksiz)</label>
+        <input type="number" class="form-input" id="promo-limit" placeholder="100">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Muddati (bo'sh = cheksiz)</label>
+      <input type="date" class="form-input" id="promo-expires">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('promo-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="savePromo()">💾 Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" style="width:540px">
+    <div class="modal-title" id="order-modal-title">Buyurtma #</div>
+    <div id="order-modal-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('order-modal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Tasdiqlaysizmi?</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeConfirm()">Bekor</button>
+      <button class="btn btn-danger" style="flex:1" id="confirm-ok-btn">O'chirish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const API = 'https://web-production-e8572.up.railway.app';
+let allOrders = [], allFoods = [], allCategories = [], allCouriers = [], allPromos = [];
+const STATUS_LABELS = {
+  NEW:'Yangi', CONFIRMED:'Tasdiqlangan', COOKING:'Tayyorlanmoqda',
+  COURIER_ASSIGNED:'Kuryer tayinlangan', OUT_FOR_DELIVERY:'Yo\'lda',
+  DELIVERED:'Yetkazildi', CANCELED:'Bekor'
+};
+const STATUS_NEXT = {
+  NEW: ['CONFIRMED','CANCELED'],
+  CONFIRMED: ['COOKING','CANCELED'],
+  COOKING: ['COURIER_ASSIGNED','CANCELED'],
+  COURIER_ASSIGNED: ['OUT_FOR_DELIVERY','CANCELED'],
+  OUT_FOR_DELIVERY: ['DELIVERED','CANCELED'],
+};
+
+// ── NAV ──
+function goTo(section, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + section).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const titles = {dashboard:'Statistika',orders:'Buyurtmalar',foods:'Taomlar',categories:'Kategoriyalar',couriers:'Kuryerlar',promos:'Promokodlar',settings:'Sozlamalar'};
+  document.getElementById('page-title').textContent = titles[section] || section;
+  closeSidebar();
+  if(section==='dashboard') loadDashboard();
+  else if(section==='orders') loadOrders();
+  else if(section==='foods') loadFoods();
+  else if(section==='categories') loadCategories();
+  else if(section==='couriers') loadCouriers();
+  else if(section==='promos') loadPromos();
+  else if(section==='settings') loadSettings();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── API CALLS ──
+async function apiGet(path) {
+  const r = await fetch(API + path);
+  if(!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+async function apiPost(path, body) {
+  const r = await fetch(API + path, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  if(!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail || r.statusText); }
+  return r.json();
+}
+async function apiPut(path, body) {
+  const r = await fetch(API + path, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  if(!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail || r.statusText); }
+  return r.json();
+}
+async function apiDelete(path) {
+  const r = await fetch(API + path, { method:'DELETE' });
+  if(!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail || r.statusText); }
+  return r.json().catch(()=>({}));
+}
+async function apiPatch(path, body) {
+  const r = await fetch(API + path, {
+    method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  if(!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail || r.statusText); }
+  return r.json();
+}
+
+// ── API STATUS ──
+async function checkApi() {
+  const dot = document.getElementById('api-dot');
+  const label = document.getElementById('api-label');
+  dot.className = 'dot';
+  label.textContent = 'Tekshirilmoqda...';
+  try {
+    await fetch(API + '/api/categories', {signal: AbortSignal.timeout(5000)});
+    dot.className = 'dot online';
+    label.textContent = 'Online';
+  } catch {
+    dot.className = 'dot offline';
+    label.textContent = 'Offline';
+  }
+}
+
+// ── TOAST ──
+function toast(msg, type='info') {
+  const icons = {success:'✅', error:'❌', info:'ℹ️'};
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span> ${msg}`;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── MODALS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openConfirm(title, msg, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok-btn').onclick = () => { closeConfirm(); onOk(); };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); }
+
+// ── DASHBOARD ──
+let currentPeriod = 'today';
+async function loadDashboard() {
+  loadStats(currentPeriod, null);
+  loadMiniOrders();
+}
+
+async function loadStats(period, btn) {
+  currentPeriod = period;
+  if(btn) {
+    document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  try {
+    const d = await apiGet('/api/admin/stats?period=' + period);
+    document.getElementById('s-total').textContent = d.orders_count;
+    document.getElementById('s-delivered').textContent = d.delivered_count;
+    const pct = d.orders_count ? Math.round(d.delivered_count/d.orders_count*100) : 0;
+    document.getElementById('s-delivered-sub').textContent = pct + '% muvaffaqiyat';
+    document.getElementById('s-revenue').textContent = fmtMoney(d.revenue);
+    document.getElementById('s-active').textContent = d.active_count;
+
+    const top = d.top_foods || [];
+    const ranks = ['gold','silver','bronze','',''];
+    document.getElementById('top-foods-wrap').innerHTML = top.length ? `
+      <ul class="top-list">
+        ${top.map((f,i) => `
+          <li class="top-item">
+            <span class="top-rank ${ranks[i]||''}">${i+1}</span>
+            <span class="top-food-name">${esc(f.name)}</span>
+            <span class="top-food-qty">${f.qty} dona</span>
+          </li>
+        `).join('')}
+      </ul>
+    ` : '<div class="empty-state"><p>Ma\'lumot yo\'q</p></div>';
+  } catch(e) {
+    console.error(e);
+    toast('Statistika yuklanmadi: ' + e.message, 'error');
+  }
+}
+
+async function loadMiniOrders() {
+  try {
+    const orders = await apiGet('/api/admin/orders?status=active&limit=8');
+    const wrap = document.getElementById('mini-orders-wrap');
+    if(!orders.length) {
+      wrap.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Aktiv buyurtmalar yo\'q</p></div>';
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Raqam</th><th>Mijoz</th><th>Jami</th><th>Status</th></tr></thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr style="cursor:pointer" onclick="showOrderDetail(${JSON.stringify(JSON.stringify(o)).slice(1,-1)})">
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">#${esc(o.order_number)}</span></td>
+            <td>${esc(o.customer_name)}</td>
+            <td style="font-family:'JetBrains Mono',monospace">${fmtMoney(o.total)}</td>
+            <td><span class="badge ${o.status}">${STATUS_LABELS[o.status]||o.status}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) {
+    document.getElementById('mini-orders-wrap').innerHTML = '<div class="empty-state"><p>Yuklanmadi</p></div>';
+  }
+}
+
+// ── ORDERS ──
+async function loadOrders() {
+  document.getElementById('orders-table-body').innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div></div>';
+  try {
+    allOrders = await apiGet('/api/admin/orders');
+    renderOrders(allOrders);
+  } catch(e) {
+    toast('Buyurtmalar yuklanmadi: ' + e.message, 'error');
+    document.getElementById('orders-table-body').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div>`;
+  }
+}
+
+function filterOrders() {
+  const q = document.getElementById('order-search').value.toLowerCase();
+  const st = document.getElementById('order-status-filter').value;
+  const filtered = allOrders.filter(o =>
+    (!q || o.order_number.toLowerCase().includes(q) || (o.customer_name||'').toLowerCase().includes(q)) &&
+    (!st || o.status === st)
+  );
+  renderOrders(filtered);
+}
+
+function renderOrders(orders) {
+  if(!orders.length) {
+    document.getElementById('orders-table-body').innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Buyurtmalar topilmadi</p></div>';
+    return;
+  }
+  document.getElementById('orders-table-body').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Raqam</th><th>Mijoz</th><th>Telefon</th><th>Jami</th><th>Status</th><th>Kuryer</th><th>Vaqt</th><th>Amal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent)">#${esc(o.order_number)}</span></td>
+            <td>${esc(o.customer_name||'—')}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(o.phone||'—')}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-weight:600">${fmtMoney(o.total)}</td>
+            <td><span class="badge ${o.status}">${STATUS_LABELS[o.status]||o.status}</span></td>
+            <td>${o.courier ? `<span style="color:var(--green)">🚴 ${esc(o.courier.name||'')}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+            <td style="font-size:12px;color:var(--muted)">${fmtDate(o.created_at)}</td>
+            <td>
+              <button class="btn btn-ghost btn-sm" onclick='showOrderDetail(${JSON.stringify(JSON.stringify(o)).slice(1,-1)})'>👁 Ko'rish</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function showOrderDetail(orderJson) {
+  const o = JSON.parse(orderJson);
+  document.getElementById('order-modal-title').textContent = 'Buyurtma #' + o.order_number;
+  const nextStatuses = STATUS_NEXT[o.status] || [];
+  document.getElementById('order-modal-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div><div class="form-label">Mijoz</div><div style="font-weight:600">${esc(o.customer_name)}</div></div>
+      <div><div class="form-label">Telefon</div><div style="font-family:'JetBrains Mono',monospace">${esc(o.phone)}</div></div>
+      <div><div class="form-label">Jami</div><div style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:18px;font-weight:700">${fmtMoney(o.total)}</div></div>
+      <div><div class="form-label">Status</div><span class="badge ${o.status}">${STATUS_LABELS[o.status]||o.status}</span></div>
+      ${o.courier ? `<div style="grid-column:1/-1"><div class="form-label">Kuryer</div><div>🚴 ${esc(o.courier.name)}</div></div>` : ''}
+      ${o.comment ? `<div style="grid-column:1/-1"><div class="form-label">Izoh</div><div>${esc(o.comment)}</div></div>` : ''}
+      ${o.promo_code ? `<div><div class="form-label">Promokod</div><div style="color:var(--accent)">${esc(o.promo_code)}</div></div>` : ''}
+    </div>
+
+    ${o.items && o.items.length ? `
+    <div class="form-label">Buyurtma tarkibi</div>
+    <div class="order-items-list">
+      ${o.items.map(it => `
+        <div class="order-item-row">
+          <span>${esc(it.name_snapshot)} × ${it.qty}</span>
+          <span style="font-family:'JetBrains Mono',monospace">${fmtMoney(it.line_total)}</span>
+        </div>
+      `).join('')}
+    </div>
+    ` : ''}
+
+    ${nextStatuses.length ? `
+    <div class="form-label" style="margin-top:16px">Status o'zgartirish</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      ${nextStatuses.map(s => `
+        <button class="btn btn-sm ${s==='CANCELED'?'btn-danger':s==='DELIVERED'?'btn-success':'btn-ghost'}"
+          onclick="changeStatus(${o.id},'${s}')">
+          ${STATUS_LABELS[s]||s}
+        </button>
+      `).join('')}
+    </div>
+    ` : ''}
+  `;
+  openModal('order-modal');
+}
+
+async function changeStatus(orderId, status) {
+  try {
+    await apiPatch('/api/admin/orders/' + orderId + '/status', {status});
+    toast('Status yangilandi: ' + STATUS_LABELS[status], 'success');
+    closeModal('order-modal');
+    await loadOrders();
+    if(document.getElementById('section-dashboard').classList.contains('active')) loadMiniOrders();
+  } catch(e) {
+    toast('Xato: ' + e.message, 'error');
+  }
+}
+
+// ── FOODS ──
+async function loadFoods() {
+  document.getElementById('foods-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>';
+  try {
+    [allFoods, allCategories] = await Promise.all([
+      apiGet('/api/foods'),
+      apiGet('/api/categories')
+    ]);
+    const sel = document.getElementById('food-cat-filter');
+    sel.innerHTML = '<option value="">Barcha kategoriyalar</option>' +
+      allCategories.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    renderFoods(allFoods);
+  } catch(e) {
+    toast('Taomlar yuklanmadi: ' + e.message, 'error');
+  }
+}
+
+function filterFoods() {
+  const q = document.getElementById('food-search').value.toLowerCase();
+  const cat = document.getElementById('food-cat-filter').value;
+  const f = allFoods.filter(food =>
+    (!q || food.name.toLowerCase().includes(q)) &&
+    (!cat || String(food.category_id) === cat)
+  );
+  renderFoods(f);
+}
+
+function renderFoods(foods) {
+  const catMap = {};
+  allCategories.forEach(c => catMap[c.id] = c.name);
+
+  if(!foods.length) {
+    document.getElementById('foods-grid').innerHTML = '<div style="grid-column:1/-1" class="empty-state"><div class="icon">🍔</div><p>Taomlar topilmadi</p></div>';
+    return;
+  }
+  document.getElementById('foods-grid').innerHTML = foods.map(f => `
+    <div class="food-card">
+      <div class="food-img">
+        ${f.image_url ? `<img src="${esc(f.image_url)}" alt="${esc(f.name)}" onerror="this.parentElement.textContent='🍔'">` : '🍔'}
+      </div>
+      <div class="food-body">
+        <div class="food-name">${esc(f.name)} ${f.is_new ? '<span style="background:rgba(34,197,94,0.15);color:#4ade80;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600">NEW</span>' : ''}</div>
+        <div class="food-cat">${esc(catMap[f.category_id]||'—')}</div>
+        ${f.description ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px">${esc(f.description)}</div>` : ''}
+        <div class="food-footer">
+          <span class="food-price">${fmtMoney(f.price)}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-icon btn-sm" onclick="openFoodModal(${JSON.stringify(JSON.stringify(f)).slice(1,-1)})" title="Tahrirlash">✏️</button>
+            <button class="btn btn-danger btn-icon btn-sm" onclick="deleteFood(${f.id},'${esc(f.name)}')" title="O'chirish">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openFoodModal(foodJson) {
+  const food = foodJson ? JSON.parse(foodJson) : null;
+  document.getElementById('food-modal-title').textContent = food ? 'Taomni tahrirlash' : 'Yangi taom qo\'shish';
+  document.getElementById('food-edit-id').value = food ? food.id : '';
+  document.getElementById('food-name').value = food ? food.name : '';
+  document.getElementById('food-desc').value = food ? (food.description||'') : '';
+  document.getElementById('food-price').value = food ? food.price : '';
+  document.getElementById('food-rating').value = food ? (food.rating||5) : 5;
+  document.getElementById('food-image').value = food ? (food.image_url||'') : '';
+  document.getElementById('food-is-new').value = food ? String(food.is_new) : 'false';
+
+  const sel = document.getElementById('food-category');
+  sel.innerHTML = allCategories.map(c => `<option value="${c.id}" ${food && food.category_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  openModal('food-modal');
+}
+
+async function saveFood() {
+  const id = document.getElementById('food-edit-id').value;
+  const body = {
+    category_id: parseInt(document.getElementById('food-category').value),
+    name: document.getElementById('food-name').value.trim(),
+    description: document.getElementById('food-desc').value.trim() || null,
+    price: parseFloat(document.getElementById('food-price').value),
+    rating: parseFloat(document.getElementById('food-rating').value)||5,
+    image_url: document.getElementById('food-image').value.trim() || null,
+    is_new: document.getElementById('food-is-new').value === 'true',
+    is_active: true
+  };
+  if(!body.name || !body.price) { toast('Nom va narx kerak!', 'error'); return; }
+  try {
+    if(id) await apiPut('/api/admin/foods/' + id, body);
+    else await apiPost('/api/admin/foods', body);
+    toast(id ? 'Taom yangilandi ✅' : 'Taom qo\'shildi ✅', 'success');
+    closeModal('food-modal');
+    await loadFoods();
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+function deleteFood(id, name) {
+  openConfirm('Taomni o\'chirish', `"${name}" taomini o'chirishni tasdiqlaysizmi?`, async () => {
+    try {
+      await apiDelete('/api/admin/foods/' + id);
+      toast('Taom o\'chirildi', 'success');
+      await loadFoods();
+    } catch(e) { toast('Xato: ' + e.message, 'error'); }
+  });
+}
+
+// ── CATEGORIES ──
+async function loadCategories() {
+  document.getElementById('categories-wrap').innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div></div>';
+  try {
+    allCategories = await apiGet('/api/admin/categories');
+    if(!allCategories.length) {
+      document.getElementById('categories-wrap').innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>Kategoriyalar yo\'q</p></div>';
+      return;
+    }
+    document.getElementById('categories-wrap').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Nomi</th><th>Holat</th><th>Amal</th></tr></thead>
+        <tbody>
+          ${allCategories.map(c => `
+            <tr>
+              <td style="color:var(--muted);font-family:'JetBrains Mono',monospace">${c.id}</td>
+              <td style="font-weight:600">${esc(c.name)}</td>
+              <td><span class="badge DELIVERED">Aktiv</span></td>
+              <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id},'${esc(c.name)}')">🗑️ O'chirish</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) { toast('Kategoriyalar yuklanmadi: ' + e.message, 'error'); }
+}
+
+function openCatModal() {
+  document.getElementById('cat-name').value = '';
+  openModal('cat-modal');
+}
+
+async function saveCategory() {
+  const name = document.getElementById('cat-name').value.trim();
+  if(!name) { toast('Nom kiriting!', 'error'); return; }
+  try {
+    await apiPost('/api/admin/categories', {name});
+    toast('Kategoriya qo\'shildi ✅', 'success');
+    closeModal('cat-modal');
+    await loadCategories();
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+function deleteCategory(id, name) {
+  openConfirm('Kategoriyani o\'chirish', `"${name}" kategoriyasini o'chirishni tasdiqlaysizmi?`, async () => {
+    try {
+      await apiDelete('/api/admin/categories/' + id);
+      toast('Kategoriya o\'chirildi', 'success');
+      await loadCategories();
+    } catch(e) { toast('Xato: ' + e.message, 'error'); }
+  });
+}
+
+// ── COURIERS ──
+async function loadCouriers() {
+  document.getElementById('couriers-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>';
+  try {
+    allCouriers = await apiGet('/api/admin/couriers');
+    if(!allCouriers.length) {
+      document.getElementById('couriers-grid').innerHTML = '<div style="grid-column:1/-1" class="empty-state"><div class="icon">🚴</div><p>Kuryerlar yo\'q</p></div>';
+      return;
+    }
+    document.getElementById('couriers-grid').innerHTML = allCouriers.map(c => `
+      <div class="courier-card">
+        <div class="courier-avatar">🚴</div>
+        <div class="courier-info">
+          <div class="courier-name">${esc(c.name)}</div>
+          <div class="courier-meta">ID: ${c.chat_id} | Kanal: ${c.channel_id||'—'}</div>
+          <div class="courier-status ${c.is_active?'active':'inactive'}" style="margin-top:4px">
+            ${c.is_active ? '🟢 Aktiv' : '🔴 Nofaol'}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn btn-sm ${c.is_active?'btn-ghost':'btn-success'}" onclick="toggleCourier(${c.id})">
+            ${c.is_active ? '⏸ To\'xtat' : '▶ Yoq'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCourier(${c.id},'${esc(c.name)}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { toast('Kuryerlar yuklanmadi: ' + e.message, 'error'); }
+}
+
+function openCourierModal() {
+  ['courier-name','courier-chat-id','courier-channel-id'].forEach(id => document.getElementById(id).value='');
+  openModal('courier-modal');
+}
+
+async function saveCourier() {
+  const body = {
+    name: document.getElementById('courier-name').value.trim(),
+    chat_id: parseInt(document.getElementById('courier-chat-id').value),
+    channel_id: parseInt(document.getElementById('courier-channel-id').value)
+  };
+  if(!body.name || !body.chat_id) { toast('Ism va Chat ID kerak!', 'error'); return; }
+  try {
+    await apiPost('/api/admin/couriers', body);
+    toast('Kuryer qo\'shildi ✅', 'success');
+    closeModal('courier-modal');
+    await loadCouriers();
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+async function toggleCourier(id) {
+  try {
+    await apiPatch('/api/admin/couriers/' + id + '/toggle', {});
+    toast('Holat o\'zgartirildi', 'success');
+    await loadCouriers();
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+function deleteCourier(id, name) {
+  openConfirm('Kuryerni o\'chirish', `"${name}" kuryerni o'chirishni tasdiqlaysizmi?`, async () => {
+    try {
+      await apiDelete('/api/admin/couriers/' + id);
+      toast('Kuryer o\'chirildi', 'success');
+      await loadCouriers();
+    } catch(e) { toast('Xato: ' + e.message, 'error'); }
+  });
+}
+
+// ── PROMOS ──
+async function loadPromos() {
+  document.getElementById('promos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>';
+  try {
+    allPromos = await apiGet('/api/admin/promos');
+    if(!allPromos.length) {
+      document.getElementById('promos-grid').innerHTML = '<div style="grid-column:1/-1" class="empty-state"><div class="icon">🎁</div><p>Promokodlar yo\'q</p></div>';
+      return;
+    }
+    document.getElementById('promos-grid').innerHTML = allPromos.map(p => `
+      <div class="promo-card">
+        <div>
+          <div class="promo-code">${esc(p.code)}</div>
+          <div style="margin-top:6px;font-size:11px;color:var(--muted)">${p.is_active?'✅ Aktiv':'❌ Nofaol'}</div>
+        </div>
+        <div class="promo-info">
+          <div class="promo-discount">${p.discount_percent}% chegirma</div>
+          <div class="promo-meta">
+            Ishlatildi: ${p.used_count}/${p.usage_limit||'∞'}
+            ${p.expires_at ? ' | ' + fmtDate(p.expires_at) : ''}
+          </div>
+        </div>
+        <button class="btn btn-danger btn-icon" onclick="deletePromo(${p.id},'${esc(p.code)}')" title="O'chirish">🗑️</button>
+      </div>
+    `).join('');
+  } catch(e) { toast('Promokodlar yuklanmadi: ' + e.message, 'error'); }
+}
+
+function openPromoModal() {
+  ['promo-code','promo-discount','promo-limit','promo-expires'].forEach(id => document.getElementById(id).value='');
+  openModal('promo-modal');
+}
+
+async function savePromo() {
+  const code = document.getElementById('promo-code').value.trim().toUpperCase();
+  const discount = parseFloat(document.getElementById('promo-discount').value);
+  const limit = document.getElementById('promo-limit').value;
+  const expires = document.getElementById('promo-expires').value;
+  if(!code || !discount) { toast('Kod va chegirma kerak!', 'error'); return; }
+  const body = {
+    code,
+    discount_percent: discount,
+    usage_limit: limit ? parseInt(limit) : null,
+    expires_at: expires ? new Date(expires).toISOString() : null
+  };
+  try {
+    await apiPost('/api/admin/promos', body);
+    toast('Promokod yaratildi ✅', 'success');
+    closeModal('promo-modal');
+    await loadPromos();
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+function deletePromo(id, code) {
+  openConfirm('Promokodni o\'chirish', `"${code}" promokodini o'chirishni tasdiqlaysizmi?`, async () => {
+    try {
+      await apiDelete('/api/admin/promos/' + id);
+      toast('Promokod o\'chirildi', 'success');
+      await loadPromos();
+    } catch(e) { toast('Xato: ' + e.message, 'error'); }
+  });
+}
+
+// ── SETTINGS ──
+async function loadSettings() {
+  document.getElementById('api-url-display').textContent = API;
+  try {
+    const s = await apiGet('/api/admin/settings');
+    if(s.shop_channel_id) document.getElementById('setting-shop-channel').value = s.shop_channel_id;
+    if(s.courier_channel_id) document.getElementById('setting-courier-channel').value = s.courier_channel_id;
+  } catch(e) {}
+}
+
+async function saveSetting(key, value) {
+  try {
+    await apiPost('/api/admin/settings', {key, value: String(value)});
+    toast('Sozlama saqlandi ✅', 'success');
+  } catch(e) { toast('Xato: ' + e.message, 'error'); }
+}
+
+// ── HELPERS ──
+function fmtMoney(n) {
+  return (Math.round(n)||0).toLocaleString('ru-RU') + ' сум';
+}
+function fmtDate(dt) {
+  if(!dt) return '—';
+  const d = new Date(dt);
+  return d.toLocaleDateString('uz-UZ', {day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('uz-UZ', {hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INIT ──
+checkApi();
+loadDashboard();
+setInterval(checkApi, 30000);
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+document.getElementById('confirm-overlay').addEventListener('click', e => {
+  if(e.target===document.getElementById('confirm-overlay')) closeConfirm();
+});
+</script>
+</body>
+</html>
