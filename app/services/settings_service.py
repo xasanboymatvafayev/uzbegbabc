@@ -5,9 +5,11 @@ from app.config import settings
 
 
 async def get_setting(session: AsyncSession, key: str) -> str | None:
-    result = await session.execute(select(AppSetting).where(AppSetting.key == key))
-    row = result.scalar_one_or_none()
-    return row.value if row else None
+    from sqlalchemy import select
+    from app.models.setting import Setting
+    result = await session.execute(select(Setting).where(Setting.key == key))
+    s = result.scalar_one_or_none()
+    return s.value if s else None
 
 
 async def set_setting(session: AsyncSession, key: str, value: str):
@@ -29,7 +31,7 @@ async def get_shop_channel_id(session: AsyncSession) -> int:
 
 
 async def get_courier_channel_id(session: AsyncSession) -> int:
-    val = await get_setting(session, "courier_channel_id")
+    val = await (session, "courier_channel_id")
     if val:
         return int(val)
     return settings.COURIER_CHANNEL_ID
