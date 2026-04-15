@@ -1,19 +1,18 @@
 """
-Admin API routes — bu faylni backendga qo'shing.
-
-1. Bu faylni saqlang: app/admin_api.py
-2. app/main.py da import qilib, app ga route sifatida qo'shing (pastda ko'rsatilgan)
+app/admin_api.py  — Admin REST API
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File
+from fastapi.responses import JSONResponse
 from sqlalchemy import select, func, cast, String, desc
 from sqlalchemy.orm import selectinload
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
+import os, uuid, shutil
 
 from app.db.session import AsyncSessionFactory
-from app.models.order import Order, OrderStatus
+from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.food import Food
 from app.models.category import Category
@@ -22,6 +21,9 @@ from app.models.promo import Promo
 from app.services.settings_service import set_setting, get_setting
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+UPLOAD_DIR = "web_app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # ──────────────────────────────────────────────────
 # Pydantic schemas
@@ -67,6 +69,25 @@ class OrderStatusUpdate(BaseModel):
 class SettingUpdate(BaseModel):
     key: str
     value: str
+
+# ──────────────────────────────────────────────────
+# IMAGE UPLOAD
+# ──────────────────────────────────────────────────
+
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Faqat jpg, png, webp, gif ruxsat etilgan")
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg"
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    with open(filepath, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    base_url = os.environ.get("WEBHOOK_URL", "")
+    url = f"{base_url}/uploads/{filename}"
+    return {"url": url, "filename": filename}
 
 # ──────────────────────────────────────────────────
 # STATS
@@ -152,7 +173,7 @@ async def admin_orders(
         result = await session.execute(q)
         orders = result.scalars().all()
 
-    def serialize_order(o):
+    def ser(o):
         return {
             "id": o.id,
             "order_number": o.order_number,
@@ -177,7 +198,7 @@ async def admin_orders(
             ],
         }
 
-    return [serialize_order(o) for o in orders]
+    return [ser(o) for o in orders]
 
 
 @router.patch("/orders/{order_id}/status")
@@ -284,18 +305,12 @@ async def admin_delete_category(cat_id: int):
 # ──────────────────────────────────────────────────
 
 @router.get("/couriers")
-async def admin_couriers():
+async def admin_couriers_list():
     async with AsyncSessionFactory() as session:
         result = await session.execute(select(Courier))
         couriers = result.scalars().all()
     return [
-        {
-            "id": c.id,
-            "name": c.name,
-            "chat_id": c.chat_id,
-            "channel_id": c.channel_id,
-            "is_active": c.is_active,
-        }
+        {"id": c.id, "name": c.name, "chat_id": c.chat_id, "channel_id": c.channel_id, "is_active": c.is_active}
         for c in couriers
     ]
 
@@ -318,8 +333,9 @@ async def admin_toggle_courier(courier_id: int):
         if not courier:
             raise HTTPException(status_code=404, detail="Kuryer topilmadi")
         courier.is_active = not courier.is_active
+        is_active = courier.is_active
         await session.commit()
-    return {"ok": True, "is_active": courier.is_active}
+    return {"ok": True, "is_active": is_active}
 
 
 @router.delete("/couriers/{courier_id}")
@@ -338,17 +354,14 @@ async def admin_delete_courier(courier_id: int):
 # ──────────────────────────────────────────────────
 
 @router.get("/promos")
-async def admin_promos():
+async def admin_promos_list():
     async with AsyncSessionFactory() as session:
         result = await session.execute(select(Promo).order_by(desc(Promo.id)))
         promos = result.scalars().all()
     return [
         {
-            "id": p.id,
-            "code": p.code,
-            "discount_percent": p.discount_percent,
-            "used_count": p.used_count,
-            "usage_limit": p.usage_limit,
+            "id": p.id, "code": p.code, "discount_percent": p.discount_percent,
+            "used_count": p.used_count, "usage_limit": p.usage_limit,
             "is_active": p.is_active,
             "expires_at": p.expires_at.isoformat() if p.expires_at else None,
         }
@@ -360,12 +373,9 @@ async def admin_promos():
 async def admin_create_promo(body: PromoCreate):
     async with AsyncSessionFactory() as session:
         promo = Promo(
-            code=body.code.upper(),
-            discount_percent=body.discount_percent,
-            usage_limit=body.usage_limit,
-            expires_at=body.expires_at,
-            is_active=True,
-            used_count=0,
+            code=body.code.upper(), discount_percent=body.discount_percent,
+            usage_limit=body.usage_limit, expires_at=body.expires_at,
+            is_active=True, used_count=0,
         )
         session.add(promo)
         await session.commit()
@@ -393,10 +403,7 @@ async def admin_get_settings():
     async with AsyncSessionFactory() as session:
         shop = await get_setting(session, "shop_channel_id")
         courier = await get_setting(session, "courier_channel_id")
-    return {
-        "shop_channel_id": shop,
-        "courier_channel_id": courier,
-    }
+    return {"shop_channel_id": shop, "courier_channel_id": courier}
 
 
 @router.post("/settings")
