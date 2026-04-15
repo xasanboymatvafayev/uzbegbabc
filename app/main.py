@@ -74,6 +74,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 app.add_api_route("/api/categories", api_categories, methods=["GET"])
 app.add_api_route("/api/foods", api_foods, methods=["GET"])
 app.add_api_route("/api/promo/validate", api_promo_validate, methods=["GET"])
+# ADMIN ROUTER — shu qatorni qo'shing:
+from app.admin_api import router as admin_router
+app.include_router(admin_router)
 
 # ---------------- TELEGRAM WEBHOOK ---------------- #
 @app.post("/webhook")
