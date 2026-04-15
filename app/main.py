@@ -38,6 +38,12 @@ def setup_routers():
 
 setup_routers()
 
+
+@app.get("/admin")
+async def serve_admin():
+    from fastapi.responses import FileResponse
+    return FileResponse("web_app/admin.html")
+
 # ---------------- FASTAPI LIFESPAN ---------------- #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
