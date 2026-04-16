@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Diamond Admin</title>
+<title>💎 Diamond Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--s1:#12121a;--s2:#1a1a26;--s3:#22223a;--ac:#f5a623;--gr:#22c55e;--rd:#ef4444;--tx:#f0f0f8;--mu:#6060a0;--br:rgba(255,255,255,0.07);--ra:12px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
 
 /* LOGIN */
 #ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
 .lb{width:340px;padding:40px;background:var(--s1);border:1px solid var(--br);border-radius:20px;text-align:center}
 .ll{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:3px;color:var(--ac);margin-bottom:4px}
-.ls2{font-size:11px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;margin-bottom:30px}
-.li{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:14px;color:var(--tx);font-size:20px;font-family:'JetBrains Mono',monospace;letter-spacing:8px;outline:none;text-align:center;transition:border-color .2s;margin-bottom:14px}
+.ls2{font-size:11px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px}
+.li{width:100%;background:var(--s2);border:2px solid var(--br);border-radius:10px;padding:14px;color:var(--tx);font-size:22px;font-family:'JetBrains Mono',monospace;letter-spacing:10px;outline:none;text-align:center;transition:border-color .2s;margin-bottom:14px}
 .li:focus{border-color:var(--ac)}
 .lbtn{width:100%;padding:14px;background:var(--ac);border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#000;cursor:pointer;transition:all .2s}
 .lbtn:hover{background:#e8941f}
@@ -25,149 +25,150 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 
 /* LAYOUT */
 .app{display:flex;min-height:100vh}
-.sb{width:236px;background:var(--s1);border-right:1px solid var(--br);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:100;transition:transform .3s}
-.sbl{padding:26px 20px 18px;border-bottom:1px solid var(--br)}
-.sbl h1{font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:2px;color:var(--ac);line-height:1}
-.sbl span{font-size:11px;color:var(--mu);letter-spacing:1px;text-transform:uppercase}
-.snav{flex:1;padding:14px 0;overflow-y:auto}
-.ni{display:flex;align-items:center;gap:11px;padding:11px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all .2s;position:relative}
+.sb{width:232px;background:var(--s1);border-right:1px solid var(--br);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:100;transition:transform .3s}
+.sbl{padding:24px 20px 16px;border-bottom:1px solid var(--br)}
+.sbl h1{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--ac);line-height:1}
+.sbl p{font-size:10px;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.snav{flex:1;padding:12px 0;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;border:none;background:none;width:100%;text-align:left;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s;position:relative}
 .ni:hover{color:var(--tx);background:var(--s2)}
 .ni.on{color:var(--ac);background:rgba(245,166,35,.08)}
 .ni.on::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac);border-radius:0 2px 2px 0}
-.nsec{padding:14px 20px 5px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--mu);opacity:.55}
-.nout{margin:14px 16px;padding:10px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);border-radius:8px;color:#f87171;cursor:pointer;font-size:13px;font-weight:600;width:calc(100% - 32px);transition:all .2s}
+.nsec{padding:12px 18px 4px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);opacity:.5}
+.nout{margin:12px 14px;padding:9px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px;font-weight:600;width:calc(100% - 28px);transition:all .2s}
 .nout:hover{background:rgba(239,68,68,.18)}
 
-.main{margin-left:236px;flex:1;display:flex;flex-direction:column}
-.tb{padding:16px 30px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.pt{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px}
-.aps{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mu);background:var(--s2);padding:5px 13px;border-radius:20px;border:1px solid var(--br)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--mu);animation:blink 2s infinite}
+.main{margin-left:232px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{padding:15px 28px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.pt{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px}
+.aps{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu);background:var(--s2);padding:5px 12px;border-radius:20px;border:1px solid var(--br)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--mu);animation:blink 2s infinite}
 .dot.on{background:var(--gr)}.dot.off{background:var(--rd);animation:none}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
-.cnt{flex:1;padding:28px 30px;overflow-y:auto}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.cnt{flex:1;padding:26px 28px}
 .sec{display:none}.sec.on{display:block}
 
 /* STATS */
-.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:28px}
-.sc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:20px;position:relative;overflow:hidden;transition:transform .2s}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px;margin-bottom:24px}
+.sc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:18px;position:relative;overflow:hidden;transition:transform .2s}
 .sc:hover{transform:translateY(-2px)}
-.slb{font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
-.sv{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;line-height:1}
-.ssb{font-size:12px;color:var(--mu);margin-top:5px}
-.si{position:absolute;top:16px;right:18px;font-size:26px;opacity:.25}
-.ptabs{display:flex;gap:8px;margin-bottom:22px}
-.ptab{padding:7px 18px;border-radius:8px;border:1px solid var(--br);background:var(--s1);color:var(--mu);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
-.ptab:hover{color:var(--tx)}.ptab.on{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
+.slb{font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;line-height:1}
+.ssb{font-size:11px;color:var(--mu);margin-top:4px}
+.si{position:absolute;top:14px;right:16px;font-size:24px;opacity:.2}
+.ptabs{display:flex;gap:7px;margin-bottom:20px}
+.ptab{padding:6px 16px;border-radius:8px;border:1px solid var(--br);background:var(--s1);color:var(--mu);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.ptab.on{background:var(--ac);color:#000;border-color:var(--ac);font-weight:600}
 
 /* TABLE */
 .tw{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);overflow:hidden}
-.th2{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--br)}
+.th{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--br)}
 .tt{font-weight:600;font-size:14px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:10px 20px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mu);border-bottom:1px solid var(--br);background:var(--s2)}
-td{padding:12px 20px;font-size:13px;border-bottom:1px solid var(--br)}
+th{text-align:left;padding:9px 18px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mu);border-bottom:1px solid var(--br);background:var(--s2)}
+td{padding:11px 18px;font-size:13px;border-bottom:1px solid var(--br);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+tr:hover td{background:rgba(255,255,255,.015)}
 
-/* BADGE */
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+/* BADGES */
+.badge{display:inline-flex;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
 .badge.NEW{background:rgba(59,130,246,.15);color:#60a5fa}
 .badge.CONFIRMED{background:rgba(168,85,247,.15);color:#c084fc}
 .badge.COOKING{background:rgba(245,166,35,.15);color:#fbbf24}
-.badge.COURIER_ASSIGNED{background:rgba(245,166,35,.2);color:var(--ac)}
-.badge.OUT_FOR_DELIVERY{background:rgba(249,115,22,.15);color:#fb923c}
+.badge.COURIER_ASSIGNED,.badge.OUT_FOR_DELIVERY{background:rgba(249,115,22,.15);color:#fb923c}
 .badge.DELIVERED{background:rgba(34,197,94,.15);color:#4ade80}
 .badge.CANCELED{background:rgba(239,68,68,.15);color:#f87171}
 
-/* BTN */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.bp{background:var(--ac);color:#000}.bp:hover{background:#e8941f;transform:translateY(-1px)}
-.bd{background:rgba(239,68,68,.13);color:#f87171;border:1px solid rgba(239,68,68,.2)}.bd:hover{background:rgba(239,68,68,.23)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;text-decoration:none}
+.bp{background:var(--ac);color:#000}.bp:hover{background:#e8941f}
+.bd{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)}.bd:hover{background:rgba(239,68,68,.22)}
 .bg{background:var(--s2);color:var(--mu);border:1px solid var(--br)}.bg:hover{color:var(--tx)}
-.bs{background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.2)}.bs:hover{background:rgba(34,197,94,.23)}
-.sm{padding:5px 11px;font-size:12px;border-radius:6px}
-.ic{padding:6px}
+.bs{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2)}.bs:hover{background:rgba(34,197,94,.22)}
+.sm{padding:5px 10px;font-size:11px;border-radius:6px}
 
 /* MODAL */
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:1000;align-items:center;justify-content:center}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
 .mo.op{display:flex}
-.md{background:var(--s1);border:1px solid var(--br);border-radius:16px;padding:28px;width:490px;max-width:95vw;max-height:91vh;overflow-y:auto;animation:su .2s ease}
-@keyframes su{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
-.mdt{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;margin-bottom:22px;color:var(--ac)}
-.fg{margin-bottom:14px}
-.fl{display:block;font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.fi,.fsl,.fta{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:10px 13px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
-.fi:focus,.fsl:focus,.fta:focus{border-color:var(--ac)}
-.fsl option{background:var(--s1)}
-.fta{resize:vertical;min-height:70px}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-.ma{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.md{background:var(--s1);border:1px solid var(--br);border-radius:16px;padding:26px;width:100%;max-width:480px;animation:su .2s ease;margin:auto}
+@keyframes su{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mdt{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;color:var(--ac)}
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+input.fi,select.fi,textarea.fi{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:7px;padding:9px 12px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+input.fi:focus,select.fi:focus,textarea.fi:focus{border-color:var(--ac)}
+select.fi option{background:var(--s1)}
+textarea.fi{resize:vertical;min-height:65px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ma{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
 
 /* IMAGE UPLOAD */
-.iuz{border:2px dashed var(--br);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2);position:relative;overflow:hidden}
-.iuz:hover,.iuz.drag{border-color:var(--ac);background:rgba(245,166,35,.04)}
-.iuz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.iprev{width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:10px;display:none}
-.iprev.show{display:block}
-.itabs{display:flex;gap:8px;margin-bottom:10px}
-.itab{flex:1;padding:7px;border-radius:7px;border:1px solid var(--br);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--s2);color:var(--mu)}
+.itabs{display:flex;gap:7px;margin-bottom:9px}
+.itab{flex:1;padding:6px;border-radius:6px;border:1px solid var(--br);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--s2);color:var(--mu)}
 .itab.on{background:var(--ac);color:#000;border-color:var(--ac)}
+.iuz{border:2px dashed var(--br);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2);position:relative}
+.iuz:hover,.iuz.drag{border-color:var(--ac);background:rgba(245,166,35,.04)}
+.iuz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.iprev{width:100%;max-height:140px;object-fit:cover;border-radius:7px;margin-top:9px;display:none}
+.iprev.show{display:block}
 
-/* CARDS */
-.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:14px}
+/* FOOD CARDS */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
 .fc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);overflow:hidden;transition:transform .2s,border-color .2s}
-.fc:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.13)}
-.fci{width:100%;height:145px;object-fit:cover;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--mu)}
+.fc:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.12)}
+.fci{width:100%;height:140px;overflow:hidden;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--mu);flex-shrink:0}
 .fci img{width:100%;height:100%;object-fit:cover}
-.fcb{padding:13px}
-.fcn{font-weight:600;font-size:14px;margin-bottom:2px}
+.fcb{padding:12px}
+.fcn{font-weight:600;font-size:13px;margin-bottom:2px;line-height:1.3}
 .fcc{font-size:11px;color:var(--mu);margin-bottom:6px}
 .fcf{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-.fcp{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ac)}
+.fcp{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--ac)}
 
-.crc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:16px;display:flex;align-items:center;gap:13px;transition:border-color .2s}
-.crc:hover{border-color:rgba(255,255,255,.13)}
-.cra{width:42px;height:42px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.prc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:15px 18px;display:flex;align-items:center;gap:14px}
-.pcode{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--ac);background:rgba(245,166,35,.1);padding:5px 12px;border-radius:7px;border:1px dashed rgba(245,166,35,.3);flex-shrink:0}
+/* COURIER / PROMO */
+.crc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:15px;display:flex;align-items:center;gap:12px;transition:border-color .2s}
+.crc:hover{border-color:rgba(255,255,255,.12)}
+.cra{width:40px;height:40px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.prc{background:var(--s1);border:1px solid var(--br);border-radius:var(--ra);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.pcode{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--ac);background:rgba(245,166,35,.1);padding:4px 10px;border-radius:6px;border:1px dashed rgba(245,166,35,.3);flex-shrink:0}
 
-.tbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
-.si2{flex:1;min-width:180px;background:var(--s1);border:1px solid var(--br);border-radius:8px;padding:8px 13px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+/* MISC */
+.tbar{display:flex;gap:9px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.si2{flex:1;min-width:160px;background:var(--s1);border:1px solid var(--br);border-radius:7px;padding:8px 12px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
 .si2:focus{border-color:var(--ac)}.si2::placeholder{color:var(--mu)}
-.sph{display:inline-flex;width:20px;height:20px;border:2px solid var(--br);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
+.sph{display:inline-block;width:18px;height:18px;border:2px solid var(--br);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-.es{text-align:center;padding:55px 20px;color:var(--mu)}
-.es .ico{font-size:44px;margin-bottom:10px;opacity:.45}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.shl{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px}
-.orow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br);font-size:13px}
+.es{text-align:center;padding:50px 20px;color:var(--mu)}
+.es .ico{font-size:40px;margin-bottom:8px;opacity:.4}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.shl{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.orow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--br);font-size:13px}
 .orow:last-child{border-bottom:none}
 
 /* CONFIRM */
-.co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);z-index:2000;align-items:center;justify-content:center}
+.co{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);z-index:3000;align-items:center;justify-content:center}
 .co.op{display:flex}
-.cb{background:var(--s1);border:1px solid rgba(239,68,68,.28);border-radius:14px;padding:26px;width:340px;max-width:95vw;text-align:center;animation:su .2s}
-.ci{font-size:38px;margin-bottom:10px}
-.ct{font-weight:700;font-size:17px;margin-bottom:7px}
-.cm{font-size:13px;color:var(--mu);margin-bottom:20px}
-.ca{display:flex;gap:10px}
+.cb{background:var(--s1);border:1px solid rgba(239,68,68,.28);border-radius:13px;padding:24px;width:320px;max-width:95vw;text-align:center;animation:su .2s}
+.ci2{font-size:36px;margin-bottom:8px}
+.ct{font-weight:700;font-size:16px;margin-bottom:6px}
+.cm{font-size:13px;color:var(--mu);margin-bottom:18px}
+.ca{display:flex;gap:9px}
 
-#toast{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px}
-.ti{display:flex;align-items:center;gap:9px;padding:11px 17px;border-radius:10px;font-size:13px;font-weight:500;animation:ti .3s ease;min-width:240px}
-@keyframes ti{from{transform:translateX(28px);opacity:0}to{transform:translateX(0);opacity:1}}
-.ti.ok{background:rgba(34,197,94,.9);color:#fff}
-.ti.er{background:rgba(239,68,68,.9);color:#fff}
-.ti.in{background:rgba(59,130,246,.9);color:#fff}
+#toast{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px}
+.ti{display:flex;align-items:center;gap:8px;padding:10px 15px;border-radius:9px;font-size:13px;font-weight:500;animation:tin .3s ease;min-width:220px;max-width:320px}
+@keyframes tin{from{transform:translateX(25px);opacity:0}to{transform:translateX(0);opacity:1}}
+.ti.ok{background:rgba(34,197,94,.92);color:#fff}
+.ti.er{background:rgba(239,68,68,.92);color:#fff}
+.ti.in{background:rgba(59,130,246,.92);color:#fff}
 
-.mto{display:none;background:none;border:none;color:var(--tx);font-size:22px;cursor:pointer}
-::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
+.mto{display:none;background:none;border:none;color:var(--tx);font-size:20px;cursor:pointer;padding:2px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
 @media(max-width:768px){
   .sb{transform:translateX(-100%)}.sb.op{transform:translateX(0)}
   .main{margin-left:0}.mto{display:block}
-  .cnt{padding:16px}.tb{padding:13px 16px}
+  .cnt{padding:14px}.topbar{padding:12px 14px}
   .fr{grid-template-columns:1fr}.sg{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}
+  .cgrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
 }
 </style>
 </head>
@@ -178,8 +179,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="lb">
     <div class="ll">💎 DIAMOND</div>
     <div class="ls2">Admin Panel</div>
-    <input type="password" class="li" id="lp" placeholder="••••" maxlength="30" autofocus>
-    <button class="lbtn" onclick="doLogin()">KIRISH →</button>
+    <input type="password" class="li" id="lp" placeholder="••••" autofocus>
+    <button class="lbtn" onclick="doLogin()">KIRISH</button>
     <div class="lerr" id="le"></div>
   </div>
 </div>
@@ -187,7 +188,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <!-- APP -->
 <div class="app" id="app" style="display:none">
   <aside class="sb" id="sb">
-    <div class="sbl"><h1>💎 Diamond</h1><span>Admin Panel</span></div>
+    <div class="sbl"><h1>💎 Diamond</h1><p>Admin Panel</p></div>
     <nav class="snav">
       <div class="nsec">Dashboard</div>
       <button class="ni on" onclick="nav('dashboard',this)"><span>📊</span>Statistika</button>
@@ -205,8 +206,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </aside>
 
   <main class="main">
-    <header class="tb">
-      <div style="display:flex;align-items:center;gap:12px">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:11px">
         <button class="mto" onclick="document.getElementById('sb').classList.toggle('op')">☰</button>
         <div class="pt" id="ptt">Statistika</div>
       </div>
@@ -225,17 +226,17 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="sg">
           <div class="sc"><div class="si">📦</div><div class="slb">Jami buyurtmalar</div><div class="sv" id="st1">—</div></div>
           <div class="sc"><div class="si">✅</div><div class="slb">Yetkazildi</div><div class="sv" id="st2">—</div><div class="ssb" id="st2s"></div></div>
-          <div class="sc"><div class="si">💰</div><div class="slb">Tushum</div><div class="sv" id="st3">—</div></div>
+          <div class="sc"><div class="si">💰</div><div class="slb">Tushum</div><div class="sv" id="st3" style="font-size:20px;padding-top:6px">—</div></div>
           <div class="sc"><div class="si">🔥</div><div class="slb">Aktiv</div><div class="sv" id="st4">—</div></div>
         </div>
         <div class="g2">
           <div class="tw">
-            <div class="th2"><div class="tt">🏆 Top Taomlar</div></div>
-            <div style="padding:14px 20px" id="topw"><div style="text-align:center;padding:18px"><div class="sph"></div></div></div>
+            <div class="th"><div class="tt">🏆 Top Taomlar</div></div>
+            <div style="padding:13px 18px" id="topw"><div style="text-align:center;padding:16px"><div class="sph"></div></div></div>
           </div>
           <div class="tw">
-            <div class="th2"><div class="tt">📦 Aktiv buyurtmalar</div><button class="btn bg sm" onclick="nav('orders',document.querySelectorAll('.ni')[1])">Barchasi →</button></div>
-            <div id="miniow"><div style="text-align:center;padding:26px"><div class="sph"></div></div></div>
+            <div class="th"><div class="tt">📦 Aktiv buyurtmalar</div><button class="btn bg sm" onclick="nav('orders',document.querySelectorAll('.ni')[1])">Barchasi →</button></div>
+            <div id="miniow"><div style="text-align:center;padding:24px"><div class="sph"></div></div></div>
           </div>
         </div>
       </div>
@@ -243,8 +244,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <!-- ORDERS -->
       <div class="sec" id="s-orders">
         <div class="tbar">
-          <input class="si2" placeholder="🔍 Raqam yoki mijoz..." id="osearch" oninput="filterOrders()">
-          <select class="fsl" style="width:auto" id="osf" onchange="filterOrders()">
+          <input class="si2" placeholder="🔍 Raqam yoki mijoz..." id="osrch" oninput="filterOrders()">
+          <select class="fi sm" style="width:auto;flex:none" id="osf" onchange="filterOrders()">
             <option value="">Barcha</option>
             <option value="NEW">Yangi</option>
             <option value="CONFIRMED">Tasdiqlangan</option>
@@ -256,7 +257,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
           </select>
           <button class="btn bg sm" onclick="loadOrders()">🔄</button>
         </div>
-        <div class="tw"><div id="otb"><div style="text-align:center;padding:40px"><div class="sph"></div></div></div></div>
+        <div class="tw" id="otw"><div style="text-align:center;padding:40px"><div class="sph"></div></div></div>
       </div>
 
       <!-- FOODS -->
@@ -266,8 +267,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <button class="btn bp" onclick="openFoodModal(null)">➕ Yangi taom</button>
         </div>
         <div class="tbar">
-          <input class="si2" placeholder="🔍 Taom nomi..." id="fsearch" oninput="filterFoods()">
-          <select class="fsl" style="width:auto" id="fcf" onchange="filterFoods()"><option value="">Barcha kategoriyalar</option></select>
+          <input class="si2" placeholder="🔍 Taom nomi..." id="fsrch" oninput="filterFoods()">
+          <select class="fi sm" style="width:auto;flex:none" id="fcf" onchange="filterFoods()"><option value="">Barcha kategoriyalar</option></select>
         </div>
         <div class="cgrid" id="fgrid"><div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div></div>
       </div>
@@ -287,7 +288,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <div class="shl">Kuryerlar</div>
           <button class="btn bp" onclick="openCourierModal()">➕ Qo'shish</button>
         </div>
-        <div class="cgrid" id="crgrid" style="grid-template-columns:repeat(auto-fill,minmax(270px,1fr))">
+        <div class="cgrid" id="crgrid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
           <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div>
         </div>
       </div>
@@ -298,29 +299,29 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <div class="shl">Promokodlar</div>
           <button class="btn bp" onclick="openPromoModal()">➕ Yaratish</button>
         </div>
-        <div class="cgrid" id="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(290px,1fr))">
+        <div class="cgrid" id="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
           <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div>
         </div>
       </div>
 
       <!-- SETTINGS -->
       <div class="sec" id="s-settings">
-        <div class="shl" style="margin-bottom:22px">Sozlamalar</div>
-        <div style="max-width:480px;display:flex;flex-direction:column;gap:14px">
-          <div class="tw" style="padding:20px">
-            <div class="tt" style="margin-bottom:12px">📢 Shop kanal ID</div>
+        <div class="shl" style="margin-bottom:20px">Sozlamalar</div>
+        <div style="max-width:460px;display:flex;flex-direction:column;gap:13px">
+          <div class="tw" style="padding:18px">
+            <div style="font-weight:600;margin-bottom:11px">📢 Shop kanal ID</div>
             <input class="fi" id="ss1" placeholder="-1001234567890">
-            <button class="btn bp sm" style="margin-top:10px" onclick="saveSetting('shop_channel_id',document.getElementById('ss1').value)">Saqlash</button>
+            <button class="btn bp sm" style="margin-top:9px" onclick="saveSetting('shop_channel_id',document.getElementById('ss1').value)">Saqlash</button>
           </div>
-          <div class="tw" style="padding:20px">
-            <div class="tt" style="margin-bottom:12px">🚴 Courier kanal ID</div>
+          <div class="tw" style="padding:18px">
+            <div style="font-weight:600;margin-bottom:11px">🚴 Courier kanal ID</div>
             <input class="fi" id="ss2" placeholder="-1001234567890">
-            <button class="btn bp sm" style="margin-top:10px" onclick="saveSetting('courier_channel_id',document.getElementById('ss2').value)">Saqlash</button>
+            <button class="btn bp sm" style="margin-top:9px" onclick="saveSetting('courier_channel_id',document.getElementById('ss2').value)">Saqlash</button>
           </div>
-          <div class="tw" style="padding:20px">
-            <div class="tt" style="margin-bottom:6px">🔗 API</div>
+          <div class="tw" style="padding:18px">
+            <div style="font-weight:600;margin-bottom:6px">🔗 API manzil</div>
             <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mu)" id="apiurl"></div>
-            <button class="btn bg sm" style="margin-top:10px" onclick="pingApi()">🔄 Tekshirish</button>
+            <button class="btn bg sm" style="margin-top:9px" onclick="pingApi()">🔄 Tekshirish</button>
           </div>
         </div>
       </div>
@@ -329,125 +330,101 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </main>
 </div>
 
-<!-- ── FOOD MODAL ── -->
-<div class="mo" id="fm">
+<!-- FOOD MODAL -->
+<div class="mo" id="fmo" onclick="bgClose(event,'fmo')">
   <div class="md">
-    <div class="mdt" id="fmtitle">Yangi taom</div>
+    <div class="mdt" id="fmot">Yangi taom</div>
     <input type="hidden" id="feid">
-    <div class="fg">
-      <label class="fl">Kategoriya *</label>
-      <select class="fsl" id="fcat"></select>
-    </div>
-    <div class="fg">
-      <label class="fl">Taom nomi *</label>
-      <input class="fi" id="fname" placeholder="Donner Kebab">
-    </div>
-    <div class="fg">
-      <label class="fl">Tavsif</label>
-      <textarea class="fta" id="fdesc" placeholder="Qisqa tavsif..."></textarea>
-    </div>
+    <div class="fg"><label class="fl">Kategoriya *</label><select class="fi" id="fcat"></select></div>
+    <div class="fg"><label class="fl">Taom nomi *</label><input class="fi" id="fname" placeholder="Donner Kebab" type="text"></div>
+    <div class="fg"><label class="fl">Tavsif</label><textarea class="fi" id="fdesc" placeholder="Qisqa tavsif..."></textarea></div>
     <div class="fr">
-      <div class="fg">
-        <label class="fl">Narx (so'm) *</label>
-        <input class="fi" type="number" id="fprice" placeholder="25000">
-      </div>
-      <div class="fg">
-        <label class="fl">Reyting (1-5)</label>
-        <input class="fi" type="number" id="frat" placeholder="5" min="1" max="5" step="0.1">
-      </div>
+      <div class="fg"><label class="fl">Narx (so'm) *</label><input class="fi" id="fprice" type="number" placeholder="25000" min="0"></div>
+      <div class="fg"><label class="fl">Reyting (1-5)</label><input class="fi" id="frat" type="number" placeholder="5" min="1" max="5" step="0.1"></div>
     </div>
 
     <div class="fg">
       <label class="fl">Rasm</label>
       <div class="itabs">
-        <button class="itab on" id="itf" onclick="imgTab('file')">📁 Fayldan</button>
-        <button class="itab" id="itu" onclick="imgTab('url')">🔗 URL kiritish</button>
+        <button class="itab on" id="itf" type="button" onclick="imgTab('file')">📁 Fayldan</button>
+        <button class="itab" id="itu" type="button" onclick="imgTab('url')">🔗 URL</button>
       </div>
-
-      <!-- File panel -->
-      <div id="ipf">
+      <div id="panf">
         <div class="iuz" id="izone">
-          <input type="file" id="fifile" accept="image/*" onchange="onFileChange(this)">
-          <div id="ihint">
-            <div style="font-size:26px;margin-bottom:5px">📷</div>
-            <div style="font-size:13px;font-weight:600;color:var(--tx)">Rasm tanlash</div>
-            <div style="font-size:11px;color:var(--mu);margin-top:3px">JPG PNG WEBP — max 5 MB</div>
-          </div>
-          <div id="iload" style="display:none"><div class="sph"></div><div style="font-size:11px;color:var(--mu);margin-top:5px">Yuklanmoqda...</div></div>
+          <input type="file" id="ffile" accept="image/jpeg,image/png,image/webp,image/gif" onchange="onFileChg(this)">
+          <div id="ihint"><div style="font-size:24px;margin-bottom:4px">📷</div><div style="font-size:12px;font-weight:600;color:var(--tx)">Rasm tanlang yoki tashlang</div><div style="font-size:10px;color:var(--mu);margin-top:2px">JPG PNG WEBP — max 5 MB</div></div>
+          <div id="iload" style="display:none;padding:8px"><div class="sph"></div><div style="font-size:11px;color:var(--mu);margin-top:4px">Yuklanmoqda...</div></div>
         </div>
-        <img id="iprf" class="iprev" src="" alt="">
+        <img id="prevf" class="iprev" src="" alt="">
       </div>
-
-      <!-- URL panel -->
-      <div id="ipu" style="display:none">
-        <input class="fi" id="fimgurl" placeholder="https://example.com/rasm.jpg" oninput="onUrlInput(this.value)">
-        <img id="ipru" class="iprev" src="" alt="">
+      <div id="panu" style="display:none">
+        <input class="fi" id="furl" type="text" placeholder="https://example.com/img.jpg" oninput="onUrlChg(this.value)">
+        <img id="prevu" class="iprev" src="" alt="" onerror="this.classList.remove('show')">
       </div>
-
-      <!-- Current image (edit mode) -->
-      <div id="icur" style="display:none;margin-top:8px">
-        <div style="font-size:11px;color:var(--mu);margin-bottom:4px">Hozirgi rasm:</div>
-        <img id="icurimg" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px" src="" alt="">
+      <div id="curimgdiv" style="display:none;margin-top:8px">
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">Joriy rasm:</div>
+        <img id="curimg" style="width:100%;max-height:110px;object-fit:cover;border-radius:7px" src="" alt="">
       </div>
     </div>
 
     <div class="fr">
-      <div class="fg">
-        <label class="fl">🆕 Yangi taom?</label>
-        <select class="fsl" id="fisnew"><option value="false">Yo'q</option><option value="true">Ha</option></select>
-      </div>
-      <div class="fg">
-        <label class="fl">Holat</label>
-        <select class="fsl" id="fisact"><option value="true">Aktiv</option><option value="false">Nofaol</option></select>
-      </div>
+      <div class="fg"><label class="fl">🆕 Yangi?</label><select class="fi" id="fisnew"><option value="false">Yo'q</option><option value="true">Ha</option></select></div>
+      <div class="fg"><label class="fl">Holat</label><select class="fi" id="fisact"><option value="true">Aktiv</option><option value="false">Nofaol</option></select></div>
     </div>
-
     <div class="ma">
-      <button class="btn bg" onclick="closeMo('fm')">Bekor</button>
-      <button class="btn bp" onclick="saveFood()">💾 Saqlash</button>
+      <button class="btn bg" type="button" onclick="closeMo('fmo')">Bekor</button>
+      <button class="btn bp" type="button" onclick="saveFood()">💾 Saqlash</button>
     </div>
   </div>
 </div>
 
-<!-- CATEGORY MODAL -->
-<div class="mo" id="cm"><div class="md" style="width:340px">
-  <div class="mdt">Yangi kategoriya</div>
-  <div class="fg"><label class="fl">Nomi *</label><input class="fi" id="cname" placeholder="Burgerlar"></div>
-  <div class="ma"><button class="btn bg" onclick="closeMo('cm')">Bekor</button><button class="btn bp" onclick="saveCat()">💾 Saqlash</button></div>
-</div></div>
+<!-- CAT MODAL -->
+<div class="mo" id="cmo" onclick="bgClose(event,'cmo')">
+  <div class="md" style="max-width:340px">
+    <div class="mdt">Yangi kategoriya</div>
+    <div class="fg"><label class="fl">Nomi *</label><input class="fi" id="cname" type="text" placeholder="Burgerlar"></div>
+    <div class="ma"><button class="btn bg" onclick="closeMo('cmo')">Bekor</button><button class="btn bp" onclick="saveCat()">💾 Saqlash</button></div>
+  </div>
+</div>
 
 <!-- COURIER MODAL -->
-<div class="mo" id="crm"><div class="md">
-  <div class="mdt">Kuryer qo'shish</div>
-  <div class="fg"><label class="fl">Ism *</label><input class="fi" id="crname" placeholder="Jasur"></div>
-  <div class="fg"><label class="fl">Chat ID *</label><input class="fi" type="number" id="crcid" placeholder="123456789"><div style="font-size:11px;color:var(--mu);margin-top:4px">@userinfobot → /start → ID</div></div>
-  <div class="fg"><label class="fl">Kanal/Guruh ID</label><input class="fi" type="number" id="crchid" placeholder="-1001234567890"></div>
-  <div class="ma"><button class="btn bg" onclick="closeMo('crm')">Bekor</button><button class="btn bp" onclick="saveCourier()">💾 Saqlash</button></div>
-</div></div>
+<div class="mo" id="crmo" onclick="bgClose(event,'crmo')">
+  <div class="md">
+    <div class="mdt">Kuryer qo'shish</div>
+    <div class="fg"><label class="fl">Ism *</label><input class="fi" id="crname" type="text" placeholder="Jasur"></div>
+    <div class="fg"><label class="fl">Telegram Chat ID *</label><input class="fi" id="crcid" type="number" placeholder="123456789"><div style="font-size:10px;color:var(--mu);margin-top:3px">@userinfobot → /start → ID olasiz</div></div>
+    <div class="fg"><label class="fl">Kanal/Guruh ID</label><input class="fi" id="crchid" type="number" placeholder="-1001234567890"><div style="font-size:10px;color:var(--mu);margin-top:3px">Bot kanal admini bo'lishi kerak</div></div>
+    <div class="ma"><button class="btn bg" onclick="closeMo('crmo')">Bekor</button><button class="btn bp" onclick="saveCourier()">💾 Saqlash</button></div>
+  </div>
+</div>
 
 <!-- PROMO MODAL -->
-<div class="mo" id="pm"><div class="md">
-  <div class="mdt">Promokod yaratish</div>
-  <div class="fg"><label class="fl">Kod *</label><input class="fi" id="pcode" placeholder="FIESTA20" style="text-transform:uppercase"></div>
-  <div class="fr">
-    <div class="fg"><label class="fl">Chegirma % *</label><input class="fi" type="number" id="pdisc" placeholder="20" min="1" max="90"></div>
-    <div class="fg"><label class="fl">Limit (bo'sh=∞)</label><input class="fi" type="number" id="plim" placeholder="100"></div>
+<div class="mo" id="pmo" onclick="bgClose(event,'pmo')">
+  <div class="md">
+    <div class="mdt">Promokod yaratish</div>
+    <div class="fg"><label class="fl">Kod *</label><input class="fi" id="pcode" type="text" placeholder="FIESTA20" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Chegirma % *</label><input class="fi" id="pdisc" type="number" placeholder="20" min="1" max="90"></div>
+      <div class="fg"><label class="fl">Limit (bo'sh=∞)</label><input class="fi" id="plim" type="number" placeholder="100" min="1"></div>
+    </div>
+    <div class="fg"><label class="fl">Muddati (bo'sh=∞)</label><input class="fi" id="pexp" type="date"></div>
+    <div class="ma"><button class="btn bg" onclick="closeMo('pmo')">Bekor</button><button class="btn bp" onclick="savePromo()">💾 Saqlash</button></div>
   </div>
-  <div class="fg"><label class="fl">Muddati (bo'sh=∞)</label><input class="fi" type="date" id="pexp"></div>
-  <div class="ma"><button class="btn bg" onclick="closeMo('pm')">Bekor</button><button class="btn bp" onclick="savePromo()">💾 Saqlash</button></div>
-</div></div>
+</div>
 
 <!-- ORDER DETAIL MODAL -->
-<div class="mo" id="om"><div class="md" style="width:520px">
-  <div class="mdt" id="omtitle">Buyurtma</div>
-  <div id="omcnt"></div>
-  <div class="ma"><button class="btn bg" onclick="closeMo('om')">Yopish</button></div>
-</div></div>
+<div class="mo" id="omo" onclick="bgClose(event,'omo')">
+  <div class="md" style="max-width:500px">
+    <div class="mdt" id="omot">Buyurtma</div>
+    <div id="omoc"></div>
+    <div class="ma"><button class="btn bg" onclick="closeMo('omo')">Yopish</button></div>
+  </div>
+</div>
 
 <!-- CONFIRM -->
 <div class="co" id="conf">
   <div class="cb">
-    <div class="ci">⚠️</div>
+    <div class="ci2">⚠️</div>
     <div class="ct" id="cot">Tasdiqlaysizmi?</div>
     <div class="cm" id="com"></div>
     <div class="ca">
@@ -460,24 +437,29 @@ tr:hover td{background:rgba(255,255,255,.02)}
 <div id="toast"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
 const API = 'https://web-production-e8572.up.railway.app';
 const PWD = '~';
-const SK  = 'dmd_adm';
+const SK  = 'dmd_auth_v2';
 
-const SL = {NEW:'Yangi',CONFIRMED:'Tasdiqlangan',COOKING:'Tayyorlanmoqda',
-  COURIER_ASSIGNED:'Kuryer tayinlangan',OUT_FOR_DELIVERY:"Yo'lda",
-  DELIVERED:'Yetkazildi',CANCELED:'Bekor qilindi'};
-const SN = {NEW:['CONFIRMED','CANCELED'],CONFIRMED:['COOKING','CANCELED'],
-  COOKING:['COURIER_ASSIGNED','CANCELED'],COURIER_ASSIGNED:['OUT_FOR_DELIVERY','CANCELED'],
-  OUT_FOR_DELIVERY:['DELIVERED','CANCELED']};
+const SL = {
+  NEW:'Yangi', CONFIRMED:'Tasdiqlangan', COOKING:'Tayyorlanmoqda',
+  COURIER_ASSIGNED:'Kuryer tayinlangan', OUT_FOR_DELIVERY:"Yo'lda",
+  DELIVERED:'Yetkazildi', CANCELED:'Bekor qilindi'
+};
+const SN = {
+  NEW:['CONFIRMED','CANCELED'], CONFIRMED:['COOKING','CANCELED'],
+  COOKING:['COURIER_ASSIGNED','CANCELED'],
+  COURIER_ASSIGNED:['OUT_FOR_DELIVERY','CANCELED'],
+  OUT_FOR_DELIVERY:['DELIVERED','CANCELED']
+};
 
-let allOrders=[], allFoods=[], allCats=[], foodImgUrl='';
+let allOrders=[], allFoods=[], allCats=[], imgUrl='';
 
-// ── AUTH ─────────────────────────────────────────────────────────────
-document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+// ── AUTH ─────────────────────────────────────────────────────────
+document.getElementById('lp').onkeydown = e => { if(e.key==='Enter') doLogin(); };
 function doLogin(){
-  if(document.getElementById('lp').value===PWD){
+  if(document.getElementById('lp').value === PWD){
     sessionStorage.setItem(SK,'1');
     document.getElementById('ls').style.display='none';
     document.getElementById('app').style.display='flex';
@@ -489,420 +471,526 @@ function doLogin(){
     document.getElementById('lp').value='';
   }
 }
-function doLogout(){sessionStorage.removeItem(SK);location.reload()}
-if(sessionStorage.getItem(SK)==='1'){
-  document.getElementById('ls').style.display='none';
-  document.getElementById('app').style.display='flex';
-  boot();
-}
-function boot(){pingApi();loadDash();setInterval(pingApi,30000)}
+function doLogout(){ sessionStorage.removeItem(SK); location.reload(); }
+(function checkAuth(){
+  if(sessionStorage.getItem(SK)==='1'){
+    document.getElementById('ls').style.display='none';
+    document.getElementById('app').style.display='flex';
+    boot();
+  }
+})();
+function boot(){ pingApi(); loadDash(); setInterval(pingApi, 30000); }
 
-// ── NAV ──────────────────────────────────────────────────────────────
-const TITLES={dashboard:'Statistika',orders:'Buyurtmalar',foods:'Taomlar',
+// ── NAV ─────────────────────────────────────────────────────────
+const TITLES = {dashboard:'Statistika',orders:'Buyurtmalar',foods:'Taomlar',
   cats:'Kategoriyalar',couriers:'Kuryerlar',promos:'Promokodlar',settings:'Sozlamalar'};
-function nav(id,btn){
+function nav(id, btn){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   if(btn) btn.classList.add('on');
-  document.getElementById('ptt').textContent=TITLES[id]||id;
+  document.getElementById('ptt').textContent = TITLES[id]||id;
   document.getElementById('sb').classList.remove('op');
-  const map={dashboard:loadDash,orders:loadOrders,foods:loadFoods,
-    cats:loadCats,couriers:loadCouriers,promos:loadPromos,settings:loadSettings};
-  if(map[id]) map[id]();
+  ({dashboard:loadDash,orders:loadOrders,foods:loadFoods,
+    cats:loadCats,couriers:loadCouriers,promos:loadPromos,settings:loadSettings}[id]||noop)();
 }
+function noop(){}
 
-// ── API HELPERS ───────────────────────────────────────────────────────
-const hdr={'Content-Type':'application/json'};
-async function GET(p){const r=await fetch(API+p);if(!r.ok)throw new Error(r.statusText);return r.json()}
-async function POST(p,b){const r=await fetch(API+p,{method:'POST',headers:hdr,body:JSON.stringify(b)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||r.statusText)}return r.json()}
-async function PUT(p,b){const r=await fetch(API+p,{method:'PUT',headers:hdr,body:JSON.stringify(b)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||r.statusText)}return r.json()}
-async function DEL(p){const r=await fetch(API+p,{method:'DELETE'});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||r.statusText)}return r.json().catch(()=>({}))}
-async function PATCH(p,b){const r=await fetch(API+p,{method:'PATCH',headers:hdr,body:JSON.stringify(b)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||r.statusText)}return r.json()}
+// ── API ─────────────────────────────────────────────────────────
+const J = {'Content-Type':'application/json'};
+async function req(method, path, body){
+  const opts = {method, headers:J};
+  if(body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(API+path, opts);
+  if(!r.ok){
+    let msg = r.statusText;
+    try{ const e=await r.json(); msg=e.detail||e.message||msg; } catch{}
+    throw new Error(msg);
+  }
+  try{ return await r.json(); } catch{ return {}; }
+}
+const GET  = p       => req('GET',  p);
+const POST = (p,b)   => req('POST', p, b);
+const PUT  = (p,b)   => req('PUT',  p, b);
+const DEL  = p       => req('DELETE',p);
+const PATCH= (p,b)   => req('PATCH',p, b);
 
 async function pingApi(){
-  const d=document.getElementById('adot'),l=document.getElementById('albl');
-  d.className='dot';l.textContent='...';
-  try{await fetch(API+'/api/categories',{signal:AbortSignal.timeout(5000)});d.className='dot on';l.textContent='Online'}
-  catch{d.className='dot off';l.textContent='Offline'}
+  const d=document.getElementById('adot'), l=document.getElementById('albl');
+  d.className='dot'; l.textContent='...';
+  try{
+    await fetch(API+'/api/categories',{signal:AbortSignal.timeout(5000)});
+    d.className='dot on'; l.textContent='Online';
+  } catch {
+    d.className='dot off'; l.textContent='Offline';
+  }
 }
 
-// ── TOAST ────────────────────────────────────────────────────────────
-function toast(msg,t='in'){
-  const m={ok:'✅',er:'❌',in:'ℹ️'};
+// ── HELPERS ─────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function money(n){ return (Math.round(n||0)).toLocaleString('ru-RU')+' сум'; }
+function fdate(d){
+  if(!d) return '—';
+  const x=new Date(d);
+  return x.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'2-digit'})
+       +' '+x.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── TOAST ───────────────────────────────────────────────────────
+function toast(msg, t='in'){
+  const icons={ok:'✅',er:'❌',in:'ℹ️'};
   const el=document.createElement('div');
-  el.className='ti '+t;el.innerHTML=`<span>${m[t]||'ℹ️'}</span>${esc(msg)}`;
+  el.className='ti '+t;
+  el.textContent=(icons[t]||'ℹ️')+' '+msg;
   document.getElementById('toast').appendChild(el);
-  setTimeout(()=>el.remove(),3500);
+  setTimeout(()=>el.remove(), 3500);
 }
 
-// ── MODAL / CONFIRM ──────────────────────────────────────────────────
-function openMo(id){document.getElementById(id).classList.add('op')}
-function closeMo(id){document.getElementById(id).classList.remove('op')}
-function openConf(title,msg,cb){
+// ── MODAL ───────────────────────────────────────────────────────
+function openMo(id){ document.getElementById(id).classList.add('op'); }
+function closeMo(id){ document.getElementById(id).classList.remove('op'); }
+function bgClose(e,id){ if(e.target===document.getElementById(id)) closeMo(id); }
+function openConf(title, msg, cb){
   document.getElementById('cot').textContent=title;
   document.getElementById('com').textContent=msg;
-  document.getElementById('cob').onclick=()=>{closeConf();cb()};
+  document.getElementById('cob').onclick=()=>{ closeConf(); cb(); };
   document.getElementById('conf').classList.add('op');
 }
-function closeConf(){document.getElementById('conf').classList.remove('op')}
+function closeConf(){ document.getElementById('conf').classList.remove('op'); }
+document.getElementById('conf').addEventListener('click',e=>{
+  if(e.target===document.getElementById('conf')) closeConf();
+});
 
-document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('op')}));
-document.getElementById('conf').addEventListener('click',e=>{if(e.target===document.getElementById('conf'))closeConf()});
-
-// ── HELPERS ──────────────────────────────────────────────────────────
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function money(n){return(Math.round(n)||0).toLocaleString('ru-RU')+' сум'}
-function fdate(d){if(!d)return'—';const x=new Date(d);return x.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+x.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'})}
-
-// ── IMAGE UPLOAD ─────────────────────────────────────────────────────
+// ── IMAGE ───────────────────────────────────────────────────────
 function imgTab(t){
-  const isF=t==='file';
-  document.getElementById('ipf').style.display=isF?'block':'none';
-  document.getElementById('ipu').style.display=isF?'none':'block';
-  document.getElementById('itf').className='itab'+(isF?' on':'');
-  document.getElementById('itu').className='itab'+(!isF?' on':'');
+  const isF = t==='file';
+  document.getElementById('panf').style.display = isF?'block':'none';
+  document.getElementById('panu').style.display = isF?'none':'block';
+  document.getElementById('itf').className = 'itab'+(isF?' on':'');
+  document.getElementById('itu').className = 'itab'+(!isF?' on':'');
 }
-async function onFileChange(inp){
+async function onFileChg(inp){
   const file=inp.files[0]; if(!file) return;
-  if(file.size>5*1024*1024){toast('Fayl juda katta (max 5MB)','er');return}
-  // Preview
-  const reader=new FileReader();
-  reader.onload=e=>{const im=document.getElementById('iprf');im.src=e.target.result;im.classList.add('show')};
-  reader.readAsDataURL(file);
-  // Upload
+  if(file.size>5*1024*1024){ toast('Max 5 MB!','er'); return; }
+  const r=new FileReader();
+  r.onload=e=>{ const im=document.getElementById('prevf'); im.src=e.target.result; im.classList.add('show'); };
+  r.readAsDataURL(file);
   document.getElementById('ihint').style.display='none';
   document.getElementById('iload').style.display='block';
   try{
     const fd=new FormData(); fd.append('file',file);
-    const r=await fetch(API+'/api/admin/upload-image',{method:'POST',body:fd});
-    if(!r.ok) throw new Error((await r.json().catch(()=>({}))).detail||r.statusText);
-    const d=await r.json();
-    foodImgUrl=d.url;
+    const res=await fetch(API+'/api/admin/upload-image',{method:'POST',body:fd});
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.detail||res.statusText); }
+    const d=await res.json();
+    imgUrl=d.url;
     toast('Rasm yuklandi ✅','ok');
-  }catch(e){toast('Yuklashda xato: '+e.message,'er');foodImgUrl=''}
-  finally{document.getElementById('ihint').style.display='block';document.getElementById('iload').style.display='none'}
+  } catch(e){ toast('Yuklash xatosi: '+e.message,'er'); imgUrl=''; }
+  finally{
+    document.getElementById('ihint').style.display='block';
+    document.getElementById('iload').style.display='none';
+  }
 }
-function onUrlInput(v){
-  const im=document.getElementById('ipru');
-  if(v.startsWith('http')){im.src=v;im.classList.add('show');foodImgUrl=v}
-  else{im.classList.remove('show');foodImgUrl=''}
+function onUrlChg(v){
+  const im=document.getElementById('prevu');
+  if(v && v.startsWith('http')){ im.src=v; im.classList.add('show'); imgUrl=v; }
+  else{ im.classList.remove('show'); imgUrl=''; }
 }
 function resetImg(){
-  foodImgUrl='';
-  document.getElementById('fifile').value='';
-  document.getElementById('fimgurl').value='';
-  document.getElementById('iprf').classList.remove('show');
-  document.getElementById('ipru').classList.remove('show');
-  document.getElementById('icur').style.display='none';
+  imgUrl='';
+  document.getElementById('ffile').value='';
+  document.getElementById('furl').value='';
+  document.getElementById('prevf').classList.remove('show');
+  document.getElementById('prevu').classList.remove('show');
+  document.getElementById('curimgdiv').style.display='none';
   imgTab('file');
 }
 
-// ── DASHBOARD ────────────────────────────────────────────────────────
-function loadDash(){loadStats('today',null);loadMiniOrders()}
-async function loadStats(p,btn){
-  if(btn){document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+// ── DASHBOARD ───────────────────────────────────────────────────
+function loadDash(){ loadStats('today',null); loadMiniOrders(); }
+
+async function loadStats(period, btn){
+  if(btn){ document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
   try{
-    const d=await GET('/api/admin/stats?period='+p);
+    const d = await GET('/api/admin/stats?period='+period);
     document.getElementById('st1').textContent=d.orders_count;
     document.getElementById('st2').textContent=d.delivered_count;
-    document.getElementById('st2s').textContent=d.orders_count?Math.round(d.delivered_count/d.orders_count*100)+'% muvaffaqiyat':'';
+    const pct = d.orders_count ? Math.round(d.delivered_count/d.orders_count*100) : 0;
+    document.getElementById('st2s').textContent=pct+'% muvaffaqiyat';
     document.getElementById('st3').textContent=money(d.revenue);
     document.getElementById('st4').textContent=d.active_count;
-    const rk=['gold','silver','bronze','',''];
-    document.getElementById('topw').innerHTML=(d.top_foods||[]).length
-      ?'<ul style="list-style:none">'+(d.top_foods).map((f,i)=>`<li style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-family:'Bebas Neue',sans-serif;font-size:19px;color:${i===0?'var(--ac)':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--mu)'};width:22px;text-align:center">${i+1}</span><span style="flex:1;font-size:13px">${esc(f.name)}</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ac);font-weight:600">${f.qty} dona</span></li>`).join('')+'</ul>'
-      :'<div class="es"><p>Ma\'lumot yo\'q</p></div>';
-  }catch(e){toast('Statistika yuklanmadi','er')}
-}
-async function loadMiniOrders(){
-  try{
-    const ords=await GET('/api/admin/orders?status=active&limit=8');
-    const w=document.getElementById('miniow');
-    if(!ords.length){w.innerHTML='<div class="es"><div class="ico">📦</div><p>Aktiv buyurtmalar yo\'q</p></div>';return}
-    w.innerHTML='<table><thead><tr><th>Raqam</th><th>Mijoz</th><th>Jami</th><th>Status</th></tr></thead><tbody>'+
-      ords.map(o=>`<tr style="cursor:pointer" onclick="showOrder(${o.id})"><td><span style="font-family:'JetBrains Mono',monospace;font-size:11px">#${esc(o.order_number)}</span></td><td>${esc(o.customer_name||'—')}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${money(o.total)}</td><td><span class="badge ${o.status}">${SL[o.status]||o.status}</span></td></tr>`).join('')+
-      '</tbody></table>';
-  }catch{document.getElementById('miniow').innerHTML='<div class="es"><p>Yuklanmadi</p></div>'}
+    const rk=['var(--ac)','#c0c0c0','#cd7f32','var(--mu)','var(--mu)'];
+    const tops=d.top_foods||[];
+    document.getElementById('topw').innerHTML = tops.length
+      ? '<div>'+tops.map((f,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--br)"><span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${rk[i]||'var(--mu)'};width:20px;text-align:center">${i+1}</span><span style="flex:1;font-size:13px">${esc(f.name)}</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ac);font-weight:700">${f.qty} dona</span></div>`).join('')+'</div>'
+      : '<div class="es"><p>Ma\'lumot yo\'q</p></div>';
+  } catch(e){ toast('Statistika yuklanmadi: '+e.message,'er'); }
 }
 
-// ── ORDERS ───────────────────────────────────────────────────────────
+async function loadMiniOrders(){
+  try{
+    const list = await GET('/api/admin/orders?status=active&limit=8');
+    if(!list.length){
+      document.getElementById('miniow').innerHTML='<div class="es"><div class="ico">📦</div><p>Aktiv buyurtmalar yo\'q</p></div>';
+      return;
+    }
+    document.getElementById('miniow').innerHTML='<table><thead><tr><th>Raqam</th><th>Mijoz</th><th>Jami</th><th>Status</th></tr></thead><tbody>'+
+      list.map(o=>`<tr style="cursor:pointer" onclick="openOrderById(${o.id})">
+        <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px">#${esc(o.order_number)}</span></td>
+        <td>${esc(o.customer_name||'—')}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${money(o.total)}</td>
+        <td><span class="badge ${o.status}">${SL[o.status]||o.status}</span></td>
+      </tr>`).join('')+'</tbody></table>';
+    // mini orders uchun ham allOrders ga saqlaymiz
+    list.forEach(o=>{ if(!allOrders.find(x=>x.id===o.id)) allOrders.push(o); });
+  } catch(e){
+    document.getElementById('miniow').innerHTML='<div class="es"><p>Yuklanmadi</p></div>';
+  }
+}
+
+// ── ORDERS ──────────────────────────────────────────────────────
 async function loadOrders(){
-  document.getElementById('otb').innerHTML='<div style="text-align:center;padding:40px"><div class="sph"></div></div>';
-  try{allOrders=await GET('/api/admin/orders');renderOrders(allOrders)}
-  catch(e){document.getElementById('otb').innerHTML=`<div class="es"><div class="ico">❌</div><p>${esc(e.message)}</p></div>`}
+  document.getElementById('otw').innerHTML='<div style="text-align:center;padding:40px"><div class="sph"></div></div>';
+  try{
+    allOrders=await GET('/api/admin/orders');
+    renderOrders(allOrders);
+  } catch(e){
+    document.getElementById('otw').innerHTML='<div class="es"><div class="ico">❌</div><p>'+esc(e.message)+'</p></div>';
+  }
 }
 function filterOrders(){
-  const q=document.getElementById('osearch').value.toLowerCase();
+  const q=document.getElementById('osrch').value.toLowerCase();
   const st=document.getElementById('osf').value;
   renderOrders(allOrders.filter(o=>
-    (!q||o.order_number.toLowerCase().includes(q)||(o.customer_name||'').toLowerCase().includes(q))&&
-    (!st||o.status===st)
+    (!q || o.order_number.toLowerCase().includes(q) || (o.customer_name||'').toLowerCase().includes(q)) &&
+    (!st || o.status===st)
   ));
 }
 function renderOrders(list){
-  if(!list.length){document.getElementById('otb').innerHTML='<div class="es"><div class="ico">📦</div><p>Topilmadi</p></div>';return}
-  document.getElementById('otb').innerHTML='<table><thead><tr><th>Raqam</th><th>Mijoz</th><th>Telefon</th><th>Jami</th><th>Status</th><th>Kuryer</th><th>Vaqt</th><th></th></tr></thead><tbody>'+
+  if(!list.length){
+    document.getElementById('otw').innerHTML='<div class="es"><div class="ico">📦</div><p>Topilmadi</p></div>';
+    return;
+  }
+  document.getElementById('otw').innerHTML='<table><thead><tr><th>Raqam</th><th>Mijoz</th><th>Telefon</th><th>Jami</th><th>Status</th><th>Kuryer</th><th>Vaqt</th><th></th></tr></thead><tbody>'+
     list.map(o=>`<tr>
       <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ac)">#${esc(o.order_number)}</span></td>
       <td>${esc(o.customer_name||'—')}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${esc(o.phone||'—')}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-weight:600">${money(o.total)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700">${money(o.total)}</td>
       <td><span class="badge ${o.status}">${SL[o.status]||o.status}</span></td>
-      <td>${o.courier?`<span style="color:var(--gr)">🚴 ${esc(o.courier.name)}</span>`:'<span style="color:var(--mu)">—</span>'}</td>
+      <td>${o.courier?`<span style="color:var(--gr);font-size:12px">🚴 ${esc(o.courier.name)}</span>`:'<span style="color:var(--mu)">—</span>'}</td>
       <td style="font-size:11px;color:var(--mu)">${fdate(o.created_at)}</td>
-      <td><button class="btn bg sm" onclick="showOrder(${o.id})">👁</button></td>
+      <td><button class="btn bg sm" onclick="openOrderById(${o.id})">👁</button></td>
     </tr>`).join('')+'</tbody></table>';
 }
-function showOrder(id){
-  const o=allOrders.find(x=>x.id===id);if(!o)return;
-  document.getElementById('omtitle').textContent='Buyurtma #'+o.order_number;
+function openOrderById(id){
+  const o=allOrders.find(x=>x.id===id);
+  if(!o){ toast('Buyurtma topilmadi','er'); return; }
+  showOrder(o);
+}
+function showOrder(o){
+  document.getElementById('omot').textContent='Buyurtma #'+o.order_number;
   const nx=SN[o.status]||[];
-  document.getElementById('omcnt').innerHTML=`
+  document.getElementById('omoc').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
       <div><div class="fl">Mijoz</div><div style="font-weight:600">${esc(o.customer_name)}</div></div>
-      <div><div class="fl">Telefon</div><div style="font-family:'JetBrains Mono',monospace">${esc(o.phone)}</div></div>
-      <div><div class="fl">Jami</div><div style="font-family:'JetBrains Mono',monospace;color:var(--ac);font-size:17px;font-weight:700">${money(o.total)}</div></div>
+      <div><div class="fl">Telefon</div><div style="font-family:'JetBrains Mono',monospace">${esc(o.phone||'—')}</div></div>
+      <div><div class="fl">Jami</div><div style="font-family:'JetBrains Mono',monospace;color:var(--ac);font-size:16px;font-weight:700">${money(o.total)}</div></div>
       <div><div class="fl">Status</div><span class="badge ${o.status}">${SL[o.status]||o.status}</span></div>
       ${o.courier?`<div style="grid-column:1/-1"><div class="fl">Kuryer</div><div>🚴 ${esc(o.courier.name)}</div></div>`:''}
       ${o.comment?`<div style="grid-column:1/-1"><div class="fl">Izoh</div><div>${esc(o.comment)}</div></div>`:''}
       ${o.promo_code?`<div><div class="fl">Promokod</div><div style="color:var(--ac)">${esc(o.promo_code)}</div></div>`:''}
     </div>
-    ${o.items&&o.items.length?`<div class="fl">Tarkib</div>`+o.items.map(it=>`<div class="orow"><span>${esc(it.name_snapshot)} × ${it.qty}</span><span style="font-family:'JetBrains Mono',monospace">${money(it.line_total)}</span></div>`).join(''):''}
-    ${nx.length?`<div class="fl" style="margin-top:14px">Status o'zgartirish</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px">${nx.map(s=>`<button class="btn sm ${s==='CANCELED'?'bd':s==='DELIVERED'?'bs':'bg'}" onclick="chgStatus(${o.id},'${s}')">${SL[s]||s}</button>`).join('')}</div>`:''}
+    ${(o.items||[]).length?`<div class="fl">Tarkib</div>${o.items.map(it=>`<div class="orow"><span>${esc(it.name_snapshot)} × ${it.qty}</span><span style="font-family:'JetBrains Mono',monospace">${money(it.line_total)}</span></div>`).join('')}`:''}
+    ${nx.length?`<div class="fl" style="margin-top:13px">Status o'zgartirish</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px">${nx.map(s=>`<button class="btn sm ${s==='CANCELED'?'bd':s==='DELIVERED'?'bs':'bg'}" onclick="chgStatus(${o.id},'${s}')">${SL[s]||s}</button>`).join('')}</div>`:''}
   `;
-  openMo('om');
+  openMo('omo');
 }
-async function chgStatus(id,status){
-  try{await PATCH('/api/admin/orders/'+id+'/status',{status});toast('Status: '+SL[status],'ok');closeMo('om');await loadOrders()}
-  catch(e){toast('Xato: '+e.message,'er')}
+async function chgStatus(id, status){
+  try{
+    await PATCH('/api/admin/orders/'+id+'/status', {status});
+    toast('Status yangilandi: '+SL[status],'ok');
+    closeMo('omo');
+    // allOrders da ham yangilaymiz
+    const idx=allOrders.findIndex(o=>o.id===id);
+    if(idx>=0) allOrders[idx].status=status;
+    renderOrders(allOrders);
+  } catch(e){ toast('Xato: '+e.message,'er'); }
 }
 
-// ── FOODS ────────────────────────────────────────────────────────────
+// ── FOODS ───────────────────────────────────────────────────────
 async function loadFoods(){
   document.getElementById('fgrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div>';
   try{
-    [allFoods,allCats]=await Promise.all([GET('/api/foods'),GET('/api/categories')]);
+    [allFoods, allCats] = await Promise.all([GET('/api/foods'), GET('/api/categories')]);
     const sel=document.getElementById('fcf');
     sel.innerHTML='<option value="">Barcha kategoriyalar</option>'+allCats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
     renderFoods(allFoods);
-  }catch(e){toast('Taomlar yuklanmadi: '+e.message,'er')}
+  } catch(e){ toast('Yuklanmadi: '+e.message,'er'); }
 }
 function filterFoods(){
-  const q=document.getElementById('fsearch').value.toLowerCase();
+  const q=document.getElementById('fsrch').value.toLowerCase();
   const cat=document.getElementById('fcf').value;
-  renderFoods(allFoods.filter(f=>(!q||f.name.toLowerCase().includes(q))&&(!cat||String(f.category_id)===cat)));
+  renderFoods(allFoods.filter(f=>
+    (!q||f.name.toLowerCase().includes(q)) && (!cat||String(f.category_id)===cat)
+  ));
 }
 function renderFoods(list){
-  const cm={};allCats.forEach(c=>cm[c.id]=c.name);
-  if(!list.length){document.getElementById('fgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🍔</div><p>Topilmadi</p></div>';return}
+  const cm={}; allCats.forEach(c=>cm[c.id]=c.name);
+  if(!list.length){
+    document.getElementById('fgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🍔</div><p>Topilmadi</p></div>';
+    return;
+  }
   document.getElementById('fgrid').innerHTML=list.map(f=>`
     <div class="fc">
-      <div class="fci">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(f.name)}" onerror="this.parentElement.textContent='🍔'">`:'🍔'}</div>
+      <div class="fci">${f.image_url?`<img src="${esc(f.image_url)}" alt="${esc(f.name)}" onerror="this.parentElement.innerHTML='🍔'">`:'🍔'}</div>
       <div class="fcb">
-        <div class="fcn">${esc(f.name)} ${f.is_new?'<span style="background:rgba(34,197,94,.15);color:#4ade80;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700">NEW</span>':''}</div>
+        <div class="fcn">${esc(f.name)}${f.is_new?' <span style="background:rgba(34,197,94,.15);color:#4ade80;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700">NEW</span>':''}</div>
         <div class="fcc">${esc(cm[f.category_id]||'—')}</div>
-        ${f.description?`<div style="font-size:11px;color:var(--mu);margin-bottom:4px">${esc(f.description)}</div>`:''}
+        ${f.description?`<div style="font-size:11px;color:var(--mu);margin-bottom:4px;line-height:1.4">${esc(f.description)}</div>`:''}
         <div class="fcf">
           <span class="fcp">${money(f.price)}</span>
-          <div style="display:flex;gap:5px">
-            <button class="btn bg ic sm" data-fid="${f.id}" onclick="editFood(this)" title="Tahrirlash">✏️</button>
-            <button class="btn bd ic sm" data-fid="${f.id}" onclick="delFood(this)" title="O'chirish">🗑️</button>
+          <div style="display:flex;gap:4px">
+            <button class="btn bg sm" title="Tahrirlash" data-id="${f.id}" onclick="editFoodBtn(this)">✏️</button>
+            <button class="btn bd sm" title="O'chirish" data-id="${f.id}" data-name="${esc(f.name)}" onclick="delFoodBtn(this)">🗑️</button>
           </div>
         </div>
       </div>
     </div>`).join('');
 }
 
-// ── FOOD EDIT — data-fid orqali (JSON stringify emas!) ────────────────
-function editFood(btn){
-  const id=parseInt(btn.dataset.fid);
-  const food=allFoods.find(f=>f.id===id);
-  if(!food){toast("Taom topilmadi",'er');return}
-  openFoodModal(food);
+// data-id orqali — JSON stringify muammosi yo'q
+function editFoodBtn(btn){
+  const id = parseInt(btn.dataset.id);
+  const f = allFoods.find(x=>x.id===id);
+  if(!f){ toast('Topilmadi','er'); return; }
+  openFoodModal(f);
 }
-function delFood(btn){
-  const id=parseInt(btn.dataset.fid);
-  const food=allFoods.find(f=>f.id===id);
-  if(!food) return;
-  openConf("Taomni o'chirish",`"${food.name}" o'chirilsinmi?`,async()=>{
-    try{await DEL('/api/admin/foods/'+id);toast("Taom o'chirildi",'ok');await loadFoods()}
-    catch(e){toast('Xato: '+e.message,'er')}
+function delFoodBtn(btn){
+  const id=parseInt(btn.dataset.id), name=btn.dataset.name;
+  openConf("Taomni o'chirish", `"${name}" o'chirilsinmi?`, async()=>{
+    try{ await DEL('/api/admin/foods/'+id); toast("O'chirildi",'ok'); await loadFoods(); }
+    catch(e){ toast('Xato: '+e.message,'er'); }
   });
 }
 
 function openFoodModal(food){
   resetImg();
-  document.getElementById('fmtitle').textContent=food?'Taomni tahrirlash':"Yangi taom qo'shish";
-  document.getElementById('feid').value=food?food.id:'';
-  document.getElementById('fname').value=food?food.name:'';
-  document.getElementById('fdesc').value=food?(food.description||''):'';
-  document.getElementById('fprice').value=food?food.price:'';
-  document.getElementById('frat').value=food?(food.rating||5):5;
-  document.getElementById('fisnew').value=food?String(food.is_new):'false';
-  document.getElementById('fisact').value=food?String(food.is_active!==false):'true';
+  document.getElementById('fmot').textContent = food ? 'Taomni tahrirlash' : "Yangi taom qo'shish";
+  document.getElementById('feid').value = food ? food.id : '';
+  document.getElementById('fname').value = food ? food.name : '';
+  document.getElementById('fdesc').value = food ? (food.description||'') : '';
+  document.getElementById('fprice').value = food ? food.price : '';
+  document.getElementById('frat').value = food ? (food.rating||5) : 5;
+  document.getElementById('fisnew').value = food ? String(!!food.is_new) : 'false';
+  document.getElementById('fisact').value = food ? String(food.is_active!==false) : 'true';
 
-  // Kategoriya
-  const sel=document.getElementById('fcat');
-  sel.innerHTML=allCats.map(c=>`<option value="${c.id}" ${food&&food.category_id===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  // Kategoriya select
+  document.getElementById('fcat').innerHTML = allCats.map(c=>
+    `<option value="${c.id}" ${food&&food.category_id===c.id?'selected':''}>${esc(c.name)}</option>`
+  ).join('');
 
-  // Rasm
-  if(food&&food.image_url){
-    foodImgUrl=food.image_url;
-    document.getElementById('icur').style.display='block';
-    document.getElementById('icurimg').src=food.image_url;
+  // Mavjud rasm ko'rsatish
+  if(food && food.image_url){
+    imgUrl = food.image_url;
+    document.getElementById('curimgdiv').style.display='block';
+    document.getElementById('curimg').src = food.image_url;
+    // URL tabga o'tkazib ko'rsatamiz
+    imgTab('url');
+    document.getElementById('furl').value = food.image_url;
+    document.getElementById('prevu').src = food.image_url;
+    document.getElementById('prevu').classList.add('show');
   }
-  openMo('fm');
+  openMo('fmo');
 }
 
 async function saveFood(){
-  const id=document.getElementById('feid').value;
-
-  // URL tabida bo'lsa, inputdan o'qi
-  if(document.getElementById('ipu').style.display!=='none'){
-    const v=document.getElementById('fimgurl').value.trim();
-    if(v) foodImgUrl=v;
+  const id = document.getElementById('feid').value;
+  // URL tab ochiq bo'lsa, inputdan ol
+  if(document.getElementById('panu').style.display !== 'none'){
+    const v = document.getElementById('furl').value.trim();
+    if(v) imgUrl=v;
   }
-
-  const body={
-    category_id:parseInt(document.getElementById('fcat').value),
-    name:document.getElementById('fname').value.trim(),
-    description:document.getElementById('fdesc').value.trim()||null,
-    price:parseFloat(document.getElementById('fprice').value),
-    rating:parseFloat(document.getElementById('frat').value)||5,
-    image_url:foodImgUrl||null,
-    is_new:document.getElementById('fisnew').value==='true',
-    is_active:document.getElementById('fisact').value==='true',
+  const name = document.getElementById('fname').value.trim();
+  const price = parseFloat(document.getElementById('fprice').value);
+  if(!name){ toast('Nom kiriting!','er'); return; }
+  if(!price){ toast('Narx kiriting!','er'); return; }
+  if(!document.getElementById('fcat').value){ toast('Kategoriya tanlang!','er'); return; }
+  const body = {
+    category_id: parseInt(document.getElementById('fcat').value),
+    name,
+    description: document.getElementById('fdesc').value.trim()||null,
+    price,
+    rating: parseFloat(document.getElementById('frat').value)||5,
+    image_url: imgUrl||null,
+    is_new: document.getElementById('fisnew').value==='true',
+    is_active: document.getElementById('fisact').value==='true',
   };
-  if(!body.name||!body.price){toast('Nom va narx kerak!','er');return}
   try{
-    if(id) await PUT('/api/admin/foods/'+id,body);
-    else await POST('/api/admin/foods',body);
+    if(id) await PUT('/api/admin/foods/'+id, body);
+    else await POST('/api/admin/foods', body);
     toast(id?'Taom yangilandi ✅':"Taom qo'shildi ✅",'ok');
-    closeMo('fm');await loadFoods();
-  }catch(e){toast('Xato: '+e.message,'er')}
+    closeMo('fmo');
+    await loadFoods();
+  } catch(e){ toast('Xato: '+e.message,'er'); }
 }
 
-// ── CATEGORIES ────────────────────────────────────────────────────────
+// ── CATEGORIES ──────────────────────────────────────────────────
 async function loadCats(){
   document.getElementById('catwrap').innerHTML='<div style="text-align:center;padding:40px"><div class="sph"></div></div>';
   try{
-    allCats=await GET('/api/admin/categories');
-    if(!allCats.length){document.getElementById('catwrap').innerHTML='<div class="es"><div class="ico">📂</div><p>Kategoriyalar yo\'q</p></div>';return}
+    allCats = await GET('/api/admin/categories');
+    if(!allCats.length){
+      document.getElementById('catwrap').innerHTML='<div class="es"><div class="ico">📂</div><p>Kategoriyalar yo\'q</p></div>';
+      return;
+    }
     document.getElementById('catwrap').innerHTML='<table><thead><tr><th>#</th><th>Nomi</th><th>Amal</th></tr></thead><tbody>'+
-      allCats.map(c=>`<tr><td style="color:var(--mu);font-family:'JetBrains Mono',monospace">${c.id}</td><td style="font-weight:600">${esc(c.name)}</td><td><button class="btn bd sm" data-cid="${c.id}" onclick="delCat(this)">🗑️ O'chirish</button></td></tr>`).join('')+
-      '</tbody></table>';
-  }catch(e){toast('Yuklanmadi: '+e.message,'er')}
+      allCats.map(c=>`<tr>
+        <td style="color:var(--mu);font-family:'JetBrains Mono',monospace">${c.id}</td>
+        <td style="font-weight:600">${esc(c.name)}</td>
+        <td><button class="btn bd sm" data-id="${c.id}" data-name="${esc(c.name)}" onclick="delCatBtn(this)">🗑️ O'chirish</button></td>
+      </tr>`).join('')+'</tbody></table>';
+  } catch(e){ toast('Yuklanmadi: '+e.message,'er'); }
 }
-function openCatModal(){document.getElementById('cname').value='';openMo('cm')}
+function openCatModal(){ document.getElementById('cname').value=''; openMo('cmo'); }
 async function saveCat(){
   const name=document.getElementById('cname').value.trim();
-  if(!name){toast('Nom kiriting!','er');return}
-  try{await POST('/api/admin/categories',{name});toast("Qo'shildi ✅",'ok');closeMo('cm');await loadCats()}
-  catch(e){toast('Xato: '+e.message,'er')}
+  if(!name){ toast('Nom kiriting!','er'); return; }
+  try{ await POST('/api/admin/categories',{name}); toast("Qo'shildi ✅",'ok'); closeMo('cmo'); await loadCats(); }
+  catch(e){ toast('Xato: '+e.message,'er'); }
 }
-function delCat(btn){
-  const id=parseInt(btn.dataset.cid);
-  const cat=allCats.find(c=>c.id===id);if(!cat)return;
-  openConf("Kategoriyani o'chirish",`"${cat.name}" o'chirilsinmi?`,async()=>{
-    try{await DEL('/api/admin/categories/'+id);toast("O'chirildi",'ok');await loadCats()}
-    catch(e){toast('Xato: '+e.message,'er')}
+function delCatBtn(btn){
+  openConf("Kategoriyani o'chirish", `"${btn.dataset.name}" o'chirilsinmi?`, async()=>{
+    try{ await DEL('/api/admin/categories/'+btn.dataset.id); toast("O'chirildi",'ok'); await loadCats(); }
+    catch(e){ toast('Xato: '+e.message,'er'); }
   });
 }
 
-// ── COURIERS ─────────────────────────────────────────────────────────
+// ── COURIERS ────────────────────────────────────────────────────
 async function loadCouriers(){
   document.getElementById('crgrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div>';
   try{
     const list=await GET('/api/admin/couriers');
-    if(!list.length){document.getElementById('crgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🚴</div><p>Kuryerlar yo\'q</p></div>';return}
+    if(!list.length){
+      document.getElementById('crgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🚴</div><p>Kuryerlar yo\'q</p></div>';
+      return;
+    }
     document.getElementById('crgrid').innerHTML=list.map(c=>`
       <div class="crc">
         <div class="cra">🚴</div>
-        <div style="flex:1">
-          <div style="font-weight:600;font-size:14px">${esc(c.name)}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mu)">ID: ${c.chat_id}</div>
-          <div style="font-size:11px;font-weight:600;margin-top:3px;color:${c.is_active?'var(--gr)':'var(--rd)'}">${c.is_active?'🟢 Aktiv':'🔴 Nofaol'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px">${esc(c.name)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mu)">ID: ${c.chat_id}</div>
+          ${c.channel_id?`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mu)">Ch: ${c.channel_id}</div>`:''}
+          <div style="font-size:11px;font-weight:600;margin-top:2px;color:${c.is_active?'var(--gr)':'var(--rd)'}">${c.is_active?'🟢 Aktiv':'🔴 Nofaol'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <button class="btn sm ${c.is_active?'bg':'bs'}" data-cid="${c.id}" onclick="toggleCourier(this)">${c.is_active?"⏸ To'xtat":'▶ Yoq'}</button>
-          <button class="btn bd sm" data-cid="${c.id}" data-cname="${esc(c.name)}" onclick="delCourier(this)">🗑️</button>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+          <button class="btn sm ${c.is_active?'bg':'bs'}" data-id="${c.id}" onclick="toggleCourierBtn(this)">${c.is_active?"⏸":"▶ Yoq"}</button>
+          <button class="btn bd sm" data-id="${c.id}" data-name="${esc(c.name)}" onclick="delCourierBtn(this)">🗑️</button>
         </div>
       </div>`).join('');
-  }catch(e){toast('Yuklanmadi: '+e.message,'er')}
+  } catch(e){ toast('Yuklanmadi: '+e.message,'er'); }
 }
-function openCourierModal(){['crname','crcid','crchid'].forEach(i=>document.getElementById(i).value='');openMo('crm')}
+function openCourierModal(){
+  ['crname','crcid','crchid'].forEach(i=>document.getElementById(i).value='');
+  openMo('crmo');
+}
 async function saveCourier(){
-  const body={name:document.getElementById('crname').value.trim(),chat_id:parseInt(document.getElementById('crcid').value),channel_id:parseInt(document.getElementById('crchid').value)||null};
-  if(!body.name||!body.chat_id){toast('Ism va Chat ID kerak!','er');return}
-  try{await POST('/api/admin/couriers',body);toast("Qo'shildi ✅",'ok');closeMo('crm');await loadCouriers()}
-  catch(e){toast('Xato: '+e.message,'er')}
+  const name=document.getElementById('crname').value.trim();
+  const chat_id=parseInt(document.getElementById('crcid').value);
+  const channel_id=parseInt(document.getElementById('crchid').value)||null;
+  if(!name||!chat_id){ toast('Ism va Chat ID kerak!','er'); return; }
+  try{ await POST('/api/admin/couriers',{name,chat_id,channel_id}); toast("Qo'shildi ✅",'ok'); closeMo('crmo'); await loadCouriers(); }
+  catch(e){ toast('Xato: '+e.message,'er'); }
 }
-async function toggleCourier(btn){
-  const id=parseInt(btn.dataset.cid);
-  try{await PATCH('/api/admin/couriers/'+id+'/toggle',{});toast('Holat o\'zgartirildi','ok');await loadCouriers()}
-  catch(e){toast('Xato: '+e.message,'er')}
+async function toggleCourierBtn(btn){
+  const id=parseInt(btn.dataset.id);
+  try{ await PATCH('/api/admin/couriers/'+id+'/toggle',{}); toast('Holat o\'zgartirildi','ok'); await loadCouriers(); }
+  catch(e){ toast('Xato: '+e.message,'er'); }
 }
-function delCourier(btn){
-  const id=parseInt(btn.dataset.cid),name=btn.dataset.cname;
-  openConf("Kuryerni o'chirish",`"${name}" o'chirilsinmi?`,async()=>{
-    try{await DEL('/api/admin/couriers/'+id);toast("O'chirildi",'ok');await loadCouriers()}
-    catch(e){toast('Xato: '+e.message,'er')}
+function delCourierBtn(btn){
+  openConf("Kuryerni o'chirish", `"${btn.dataset.name}" o'chirilsinmi?`, async()=>{
+    try{ await DEL('/api/admin/couriers/'+btn.dataset.id); toast("O'chirildi",'ok'); await loadCouriers(); }
+    catch(e){ toast('Xato: '+e.message,'er'); }
   });
 }
 
-// ── PROMOS ───────────────────────────────────────────────────────────
+// ── PROMOS ──────────────────────────────────────────────────────
 async function loadPromos(){
   document.getElementById('pgrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px"><div class="sph"></div></div>';
   try{
     const list=await GET('/api/admin/promos');
-    if(!list.length){document.getElementById('pgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🎁</div><p>Promokodlar yo\'q</p></div>';return}
+    if(!list.length){
+      document.getElementById('pgrid').innerHTML='<div style="grid-column:1/-1" class="es"><div class="ico">🎁</div><p>Promokodlar yo\'q</p></div>';
+      return;
+    }
     document.getElementById('pgrid').innerHTML=list.map(p=>`
       <div class="prc">
-        <div><div class="pcode">${esc(p.code)}</div><div style="font-size:10px;color:var(--mu);margin-top:5px">${p.is_active?'✅ Aktiv':'❌ Nofaol'}</div></div>
-        <div style="flex:1"><div style="font-size:19px;font-weight:700">${p.discount_percent}%</div><div style="font-size:11px;color:var(--mu)">Ishlatildi: ${p.used_count}/${p.usage_limit||'∞'}</div></div>
-        <button class="btn bd ic sm" data-pid="${p.id}" data-pcode="${esc(p.code)}" onclick="delPromo(this)">🗑️</button>
+        <div>
+          <div class="pcode">${esc(p.code)}</div>
+          <div style="font-size:10px;color:var(--mu);margin-top:4px">${p.is_active?'✅ Aktiv':'❌ Nofaol'}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:18px;font-weight:700">${p.discount_percent}%</div>
+          <div style="font-size:11px;color:var(--mu)">Ishlatildi: ${p.used_count}/${p.usage_limit||'∞'}</div>
+          ${p.expires_at?`<div style="font-size:10px;color:var(--mu)">${fdate(p.expires_at)}</div>`:''}
+        </div>
+        <button class="btn bd sm" data-id="${p.id}" data-code="${esc(p.code)}" onclick="delPromoBtn(this)">🗑️</button>
       </div>`).join('');
-  }catch(e){toast('Yuklanmadi: '+e.message,'er')}
+  } catch(e){ toast('Yuklanmadi: '+e.message,'er'); }
 }
-function openPromoModal(){['pcode','pdisc','plim','pexp'].forEach(i=>document.getElementById(i).value='');openMo('pm')}
+function openPromoModal(){
+  ['pcode','pdisc','plim','pexp'].forEach(i=>document.getElementById(i).value='');
+  openMo('pmo');
+}
 async function savePromo(){
   const code=document.getElementById('pcode').value.trim().toUpperCase();
   const disc=parseFloat(document.getElementById('pdisc').value);
-  if(!code||!disc){toast('Kod va chegirma kerak!','er');return}
+  if(!code||!disc){ toast('Kod va chegirma kerak!','er'); return; }
   const lim=document.getElementById('plim').value;
   const exp=document.getElementById('pexp').value;
   try{
-    await POST('/api/admin/promos',{code,discount_percent:disc,usage_limit:lim?parseInt(lim):null,expires_at:exp?new Date(exp).toISOString():null});
-    toast('Promokod yaratildi ✅','ok');closeMo('pm');await loadPromos();
-  }catch(e){toast('Xato: '+e.message,'er')}
+    await POST('/api/admin/promos',{
+      code, discount_percent:disc,
+      usage_limit: lim?parseInt(lim):null,
+      expires_at: exp?new Date(exp).toISOString():null,
+    });
+    toast('Promokod yaratildi ✅','ok'); closeMo('pmo'); await loadPromos();
+  } catch(e){ toast('Xato: '+e.message,'er'); }
 }
-function delPromo(btn){
-  const id=parseInt(btn.dataset.pid),code=btn.dataset.pcode;
-  openConf("Promokodni o'chirish",`"${code}" o'chirilsinmi?`,async()=>{
-    try{await DEL('/api/admin/promos/'+id);toast("O'chirildi",'ok');await loadPromos()}
-    catch(e){toast('Xato: '+e.message,'er')}
+function delPromoBtn(btn){
+  openConf("Promokodni o'chirish", `"${btn.dataset.code}" o'chirilsinmi?`, async()=>{
+    try{ await DEL('/api/admin/promos/'+btn.dataset.id); toast("O'chirildi",'ok'); await loadPromos(); }
+    catch(e){ toast('Xato: '+e.message,'er'); }
   });
 }
 
-// ── SETTINGS ─────────────────────────────────────────────────────────
+// ── SETTINGS ────────────────────────────────────────────────────
 async function loadSettings(){
   document.getElementById('apiurl').textContent=API;
-  try{const s=await GET('/api/admin/settings');if(s.shop_channel_id)document.getElementById('ss1').value=s.shop_channel_id;if(s.courier_channel_id)document.getElementById('ss2').value=s.courier_channel_id}catch{}
+  try{
+    const s=await GET('/api/admin/settings');
+    if(s.shop_channel_id) document.getElementById('ss1').value=s.shop_channel_id;
+    if(s.courier_channel_id) document.getElementById('ss2').value=s.courier_channel_id;
+  } catch{}
 }
 async function saveSetting(k,v){
-  try{await POST('/api/admin/settings',{key:k,value:String(v)});toast('Saqlandi ✅','ok')}
-  catch(e){toast('Xato: '+e.message,'er')}
+  if(!v.trim()){ toast('Qiymat kiriting!','er'); return; }
+  try{ await POST('/api/admin/settings',{key:k,value:v}); toast('Saqlandi ✅','ok'); }
+  catch(e){ toast('Xato: '+e.message,'er'); }
 }
 
-// ── DRAG & DROP ───────────────────────────────────────────────────────
+// ── DRAG & DROP ─────────────────────────────────────────────────
 const iz=document.getElementById('izone');
 iz.addEventListener('dragover',e=>{e.preventDefault();iz.classList.add('drag')});
 iz.addEventListener('dragleave',()=>iz.classList.remove('drag'));
 iz.addEventListener('drop',e=>{
-  e.preventDefault();iz.classList.remove('drag');
+  e.preventDefault(); iz.classList.remove('drag');
   const f=e.dataTransfer.files[0];
-  if(f){const inp=document.getElementById('fifile');const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;onFileChange(inp)}
+  if(f){
+    const inp=document.getElementById('ffile');
+    const dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files;
+    onFileChg(inp);
+  }
 });
 </script>
 </body>
