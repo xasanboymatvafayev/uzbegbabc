@@ -3,6 +3,7 @@ from aiogram.types import Message
 from sqlalchemy import select
 import json
 import logging
+import time
 
 from app.db.session import AsyncSessionFactory
 from app.services.orders import create_order, set_channel_message_id
@@ -10,62 +11,104 @@ from app.services.promo import validate_promo, use_promo
 from app.services.settings_service import get_shop_channel_id
 from app.services.telegram_notify import send_order_to_channel, notify_user_status
 from app.models.user import User
-
+from app.models.order import Order
+from sqlalchemy import cast, String, desc
 
 router = Router()
 logger = logging.getLogger(__name__)
 
+# ── Idempotency: tg_id → oxirgi buyurtma vaqti (unix seconds)
+# Bir foydalanuvchi 60 soniyada faqat 1 marta buyurtma bera oladi
+_last_order_time: dict[int, float] = {}
+ORDER_COOLDOWN = 60  # soniya
+
 
 @router.message(F.web_app_data)
 async def handle_webapp_data(message: Message):
+    tg_id = message.from_user.id
+
+    # ── 1. Cooldown tekshirish (duplicate protection)
+    now = time.time()
+    last = _last_order_time.get(tg_id, 0)
+    if now - last < ORDER_COOLDOWN:
+        remaining = int(ORDER_COOLDOWN - (now - last))
+        logger.warning(f"Duplicate order attempt from {tg_id}, {remaining}s left")
+        await message.answer(
+            f"⏳ Buyurtmangiz qabul qilindi. "
+            f"Yangi buyurtma berish uchun {remaining} soniya kuting."
+        )
+        return
+
+    # ── 2. JSON parse
     try:
         data = json.loads(message.web_app_data.data)
     except Exception as e:
         logger.error(f"WebApp JSON parse error: {e}")
-        await message.answer("❌ Ошибка при обработке заказа.")
+        await message.answer("❌ Buyurtmani qayta ishlashda xatolik.")
         return
 
     if data.get("type") != "order_create":
         return
 
+    # ── 3. Validatsiya
     total = data.get("total", 0)
     if total < 50000:
-        await message.answer("❌ Минимальная сумма заказа — 50 000 сум.")
+        await message.answer("❌ Minimal buyurtma summasi — 50 000 so'm.")
         return
 
     items = data.get("items", [])
     if not items:
-        await message.answer("❌ Корзина пуста.")
+        await message.answer("❌ Savat bo'sh.")
         return
 
-    promo_code = data.get("promo_code")
     location = data.get("location", {})
     lat = location.get("lat")
     lng = location.get("lng")
-
     if not lat or not lng:
-        await message.answer("❌ Укажите местоположение для доставки.")
+        await message.answer("❌ Yetkazib berish uchun joylashuvni belgilang.")
         return
 
-    async with AsyncSessionFactory() as session:
-        result = await session.execute(
-            select(User).where(User.tg_id == message.from_user.id)
-        )
-        user = result.scalar_one_or_none()
+    # ── 4. Cooldown o'rnatish (qayta urinishdan himoya)
+    _last_order_time[tg_id] = now
 
+    promo_code = data.get("promo_code")
+
+    async with AsyncSessionFactory() as session:
+        # User topish
+        result = await session.execute(select(User).where(User.tg_id == tg_id))
+        user = result.scalar_one_or_none()
         if not user:
-            await message.answer("❌ Пользователь не найден. Используйте /start")
+            await message.answer("❌ Foydalanuvchi topilmadi. /start ni bosing.")
+            return
+
+        # ── 5. DB da oxirgi buyurtmani tekshirish (server-side dedup)
+        from datetime import datetime, timedelta, timezone
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=ORDER_COOLDOWN)
+        dup_result = await session.execute(
+            select(Order)
+            .where(Order.user_id == user.id)
+            .where(Order.created_at >= cutoff)
+            .order_by(desc(Order.created_at))
+            .limit(1)
+        )
+        dup = dup_result.scalar_one_or_none()
+        if dup:
+            logger.warning(f"DB-level duplicate blocked for user {tg_id}, order {dup.order_number}")
+            await message.answer(
+                f"⚠️ Sizning #{dup.order_number} raqamli buyurtmangiz allaqachon qabul qilingan!\n"
+                f"Iltimos, 60 soniya kuting."
+            )
             return
 
         # Promo tekshirish
         if promo_code:
             promo_info = await validate_promo(session, promo_code)
             if not promo_info:
-                await message.answer("❌ Промо-код недействителен.")
+                await message.answer("❌ Promokod yaroqsiz yoki muddati o'tgan.")
                 return
             await use_promo(session, promo_code)
 
-        # Order yaratish
+        # ── 6. Buyurtma yaratish
         order = await create_order(
             session=session,
             user_id=user.id,
@@ -79,16 +122,15 @@ async def handle_webapp_data(message: Message):
             promo_code=promo_code,
         )
 
-        # Userga status yuborish
-        await notify_user_status(message.bot, message.from_user.id, order)
+        # User ga xabar
+        await notify_user_status(message.bot, tg_id, order)
 
         # Admin kanalga yuborish
         shop_channel_id = await get_shop_channel_id(session)
         if shop_channel_id:
-            msg_id = await send_order_to_channel(
-                message.bot, shop_channel_id, order
-            )
+            msg_id = await send_order_to_channel(message.bot, shop_channel_id, order)
             if msg_id:
                 await set_channel_message_id(session, order.id, msg_id)
 
-    await message.answer("✅ Ваш заказ успешно принят! Ожидайте подтверждения.")
+    logger.info(f"✅ Order {order.order_number} created for user {tg_id}")
+    await message.answer("✅ Buyurtmangiz qabul qilindi! Tasdiqlashni kuting.")
