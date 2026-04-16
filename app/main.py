@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
@@ -24,16 +25,11 @@ dp = Dispatcher(storage=storage)
 def setup_routers():
     from app.handlers.client import start as client_start
     from app.handlers.client import webapp as client_webapp
-    from app.handlers.admin import main as admin_main
-    from app.handlers.admin import crud as admin_crud
-    from app.handlers.admin import orders as admin_orders
+    # ❌ Admin bot handlerlari o'chirildi — admin funksiyalari endi web saytda
     from app.handlers.courier import main as courier_main
 
     dp.include_router(client_start.router)
     dp.include_router(client_webapp.router)
-    dp.include_router(admin_main.router)
-    dp.include_router(admin_crud.router)
-    dp.include_router(admin_orders.router)
     dp.include_router(courier_main.router)
 
 setup_routers()
@@ -92,12 +88,17 @@ async def telegram_webhook(request: Request):
         logger.error(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# ---------------- STATIC UPLOADS ---------------- #
+uploads_dir = "web_app/uploads"
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
 # ---------------- ADMIN PANEL ---------------- #
 @app.get("/admin")
 async def serve_admin():
-    admin_file = "web_app/admin.html"
-    if os.path.exists(admin_file):
-        return FileResponse(admin_file)
+    f = "web_app/admin.html"
+    if os.path.exists(f):
+        return FileResponse(f)
     return JSONResponse(status_code=404, content={"error": "admin.html topilmadi"})
 
 # ---------------- WEBAPP ---------------- #
