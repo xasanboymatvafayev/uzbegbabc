@@ -1036,7 +1036,10 @@ async function loadDbTables() {
   const cardsEl = document.getElementById('db-stat-cards');
   listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--mu)">Yuklanmoqda...</div>';
   try {
-    const res = await fetch(API + '/api/admin/db/tables', { headers: H() });
+    // H() o'rniga to'g'ridan-to'g'ri headerlar
+    const res = await fetch(API + '/api/admin/db/tables', { 
+      headers: { 'Content-Type': 'application/json' }
+    });
     const tables = await res.json();
 
     // Stat cards
@@ -1059,33 +1062,33 @@ async function loadDbTables() {
             <th style="text-align:center;padding:8px 12px">Qatorlar</th>
             <th style="text-align:center;padding:8px 12px">Bog'liqlar</th>
             <th style="text-align:right;padding:8px 12px">Amal</th>
-          </tr>
+           </tr>
         </thead>
         <tbody>
           ${tables.map(t => `
             <tr style="border-bottom:1px solid var(--br);transition:background .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
               <td style="padding:12px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">
                 ${tableIcon(t.table)} ${t.table}
-              </td>
+               </td>
               <td style="padding:12px;font-size:13px;color:var(--mu)">${t.description}</td>
               <td style="padding:12px;text-align:center">
                 <span style="background:var(--s3);padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${t.row_count > 0 ? 'var(--ac)' : 'var(--mu)'}">
                   ${t.row_count >= 0 ? t.row_count : '?'}
                 </span>
-              </td>
+               </td>
               <td style="padding:12px;text-align:center;font-size:12px;color:var(--mu)">
                 ${t.depends.length > 0 ? t.depends.join(', ') : '—'}
-              </td>
+               </td>
               <td style="padding:12px;text-align:right">
                 <button class="btn sm" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)"
                   onclick="dbClearConfirm('${t.table}','${t.label}','${t.description}',${JSON.stringify(t.depends)})">
                   🗑️ Tozalash
                 </button>
-              </td>
-            </tr>
+               </td>
+             </tr>
           `).join('')}
         </tbody>
-      </table>
+       </table>
     `;
   } catch(e) {
     listEl.innerHTML = `<div style="color:var(--rd);padding:20px">Xatolik: ${e.message}</div>`;
@@ -1123,7 +1126,7 @@ async function dbConfirmDo() {
   try {
     const res = await fetch(API + '/api/admin/db/clear', {
       method: 'POST',
-      headers: { ...H(), 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ table: _dbPendingTable, cascade: true })
     });
     const data = await res.json();
@@ -1132,10 +1135,10 @@ async function dbConfirmDo() {
       toast(`✅ "${_dbPendingTable || ''}" tozalandi`, 'ok');
       await loadDbTables(); // Refresh
     } else {
-      toast('❌ Xatolik: ' + (data.detail || 'Noma\'lum'), 'err');
+      toast('❌ Xatolik: ' + (data.detail || 'Noma\'lum'), 'er');
     }
   } catch(e) {
-    toast('❌ Server xatosi: ' + e.message, 'err');
+    toast('❌ Server xatosi: ' + e.message, 'er');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Ha, tozalash';
