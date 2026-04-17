@@ -265,3 +265,114 @@ async def admin_save_setting(body: SettingUpdate):
     async with AsyncSessionFactory() as s:
         await set_setting(s,body.key,body.value)
     return {"ok": True}
+
+# ── Database Management ──────────────────────────────────────────────────────
+
+from app.models.user import User as UserModel
+from app.models.order_item import OrderItem as OrderItemModel
+from sqlalchemy import text, inspect as sa_inspect
+
+CLEARABLE_TABLES = {
+    "orders": {
+        "label": "Buyurtmalar",
+        "description": "Barcha buyurtmalar (order_items ham o'chadi)",
+        "depends": ["order_items"],
+    },
+    "order_items": {
+        "label": "Buyurtma elementlari",
+        "description": "Barcha buyurtma qatorlari",
+        "depends": [],
+    },
+    "users": {
+        "label": "Foydalanuvchilar",
+        "description": "Barcha botdan ro'yxatdan o'tgan userlar",
+        "depends": ["orders", "order_items"],
+    },
+    "promos": {
+        "label": "Promokodlar",
+        "description": "Barcha promokodlar",
+        "depends": [],
+    },
+    "couriers": {
+        "label": "Kuryerlar",
+        "description": "Barcha kuryerlar (buyurtmalardan bog'liq)",
+        "depends": [],
+    },
+    "foods": {
+        "label": "Taomlar",
+        "description": "Barcha menu taomlar",
+        "depends": ["order_items"],
+    },
+    "categories": {
+        "label": "Kategoriyalar",
+        "description": "Barcha kategoriyalar",
+        "depends": ["foods", "order_items"],
+    },
+    "app_settings": {
+        "label": "Sozlamalar",
+        "description": "Ilova sozlamalari (kanal IDlar va h.k.)",
+        "depends": [],
+    },
+}
+
+
+@router.get("/db/tables")
+async def admin_db_tables():
+    """Jadvallar haqida ma'lumot (qator soni bilan)"""
+    async with AsyncSessionFactory() as s:
+        result = []
+        for table_name, info in CLEARABLE_TABLES.items():
+            try:
+                cnt = (await s.execute(text(f"SELECT COUNT(*) FROM {table_name}"))).scalar() or 0
+            except Exception:
+                cnt = -1
+            result.append({
+                "table": table_name,
+                "label": info["label"],
+                "description": info["description"],
+                "row_count": cnt,
+                "depends": info["depends"],
+            })
+        return result
+
+
+class ClearTableRequest(BaseModel):
+    table: str
+    cascade: bool = True
+
+
+@router.post("/db/clear")
+async def admin_clear_table(body: ClearTableRequest):
+    """Tanlangan jadvalni tozalash"""
+    if body.table not in CLEARABLE_TABLES:
+        raise HTTPException(400, f"'{body.table}' jadvali ruxsat etilmagan")
+
+    async with AsyncSessionFactory() as s:
+        try:
+            if body.cascade:
+                # Avval bog'liq jadvallarni tozalaymiz
+                for dep in CLEARABLE_TABLES[body.table]["depends"]:
+                    await s.execute(text(f"DELETE FROM {dep}"))
+            await s.execute(text(f"DELETE FROM {body.table}"))
+            await s.commit()
+            # Qator sonini qaytaramiz
+            remaining = (await s.execute(text(f"SELECT COUNT(*) FROM {body.table}"))).scalar() or 0
+        except Exception as e:
+            await s.rollback()
+            raise HTTPException(500, f"Tozalashda xatolik: {str(e)}")
+
+    return {"ok": True, "table": body.table, "remaining_rows": remaining}
+
+
+@router.get("/db/stats")
+async def admin_db_stats():
+    """Barcha jadvallarning umumiy statistikasi"""
+    async with AsyncSessionFactory() as s:
+        stats = {}
+        for table_name in CLEARABLE_TABLES:
+            try:
+                cnt = (await s.execute(text(f"SELECT COUNT(*) FROM {table_name}"))).scalar() or 0
+                stats[table_name] = cnt
+            except Exception:
+                stats[table_name] = -1
+        return stats
