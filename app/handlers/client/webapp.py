@@ -17,9 +17,9 @@ from sqlalchemy import cast, String, desc
 router = Router()
 logger = logging.getLogger(__name__)
 
-# ── Idempotency: tg_id → oxirgi buyurtma vaqti (unix seconds)
-# Bir foydalanuvchi 60 soniyada faqat 1 marta buyurtma bera oladi
+# ── In-memory cooldown (birinchi himoya qatlami)
 _last_order_time: dict[int, float] = {}
+_processing: set = set()   # parallel so'rovlarni bloklash
 ORDER_COOLDOWN = 60  # soniya
 
 
@@ -27,14 +27,28 @@ ORDER_COOLDOWN = 60  # soniya
 async def handle_webapp_data(message: Message):
     tg_id = message.from_user.id
 
-    # ── 1. Cooldown tekshirish (duplicate protection)
+    # ── 0. Parallel so'rovni bloklash
+    if tg_id in _processing:
+        logger.warning(f"Parallel order attempt blocked for {tg_id}")
+        await message.answer("⏳ Buyurtmangiz hali qayta ishlanmoqda, kuting...")
+        return
+    _processing.add(tg_id)
+
+    try:
+        await _process_order(message, tg_id)
+    finally:
+        _processing.discard(tg_id)
+
+
+async def _process_order(message: Message, tg_id: int):
+    # ── 1. In-memory cooldown (tez javob)
     now = time.time()
     last = _last_order_time.get(tg_id, 0)
     if now - last < ORDER_COOLDOWN:
         remaining = int(ORDER_COOLDOWN - (now - last))
-        logger.warning(f"Duplicate order attempt from {tg_id}, {remaining}s left")
+        logger.warning(f"In-memory cooldown: user {tg_id}, {remaining}s left")
         await message.answer(
-            f"⏳ Buyurtmangiz qabul qilindi. "
+            f"⏳ Buyurtmangiz allaqachon qabul qilindi!\n"
             f"Yangi buyurtma berish uchun {remaining} soniya kuting."
         )
         return
@@ -53,12 +67,12 @@ async def handle_webapp_data(message: Message):
     # ── 3. Validatsiya
     total = data.get("total", 0)
     if total < 50000:
-        await message.answer("❌ Minimal buyurtma summasi — 50 000 so'm.")
+        await message.answer("❌ Minimal buyurtma summasi — 50 000 soʻm.")
         return
 
     items = data.get("items", [])
     if not items:
-        await message.answer("❌ Savat bo'sh.")
+        await message.answer("❌ Savat boʻsh.")
         return
 
     location = data.get("location", {})
@@ -67,9 +81,6 @@ async def handle_webapp_data(message: Message):
     if not lat or not lng:
         await message.answer("❌ Yetkazib berish uchun joylashuvni belgilang.")
         return
-
-    # ── 4. Cooldown o'rnatish (qayta urinishdan himoya)
-    _last_order_time[tg_id] = now
 
     promo_code = data.get("promo_code")
 
@@ -81,7 +92,7 @@ async def handle_webapp_data(message: Message):
             await message.answer("❌ Foydalanuvchi topilmadi. /start ni bosing.")
             return
 
-        # ── 5. DB da oxirgi buyurtmani tekshirish (server-side dedup)
+        # ── 4. DB-level duplicate check (eng ishonchli himoya)
         from datetime import datetime, timedelta, timezone
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=ORDER_COOLDOWN)
         dup_result = await session.execute(
@@ -93,6 +104,7 @@ async def handle_webapp_data(message: Message):
         )
         dup = dup_result.scalar_one_or_none()
         if dup:
+            _last_order_time[tg_id] = now  # in-memory ham yangilash
             logger.warning(f"DB-level duplicate blocked for user {tg_id}, order {dup.order_number}")
             await message.answer(
                 f"⚠️ Sizning #{dup.order_number} raqamli buyurtmangiz allaqachon qabul qilingan!\n"
@@ -100,11 +112,14 @@ async def handle_webapp_data(message: Message):
             )
             return
 
+        # ── 5. Cooldown o'rnatish (DB yozishdan OLDIN — race condition oldini olish)
+        _last_order_time[tg_id] = now
+
         # Promo tekshirish
         if promo_code:
             promo_info = await validate_promo(session, promo_code)
             if not promo_info:
-                await message.answer("❌ Promokod yaroqsiz yoki muddati o'tgan.")
+                await message.answer("❌ Promokod yaroqsiz yoki muddati oʻtgan.")
                 return
             await use_promo(session, promo_code)
 
