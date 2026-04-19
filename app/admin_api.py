@@ -256,15 +256,59 @@ async def admin_delete_promo(pid: int):
 @router.get("/settings")
 async def admin_get_settings():
     async with AsyncSessionFactory() as s:
-        shop = await get_setting(s,"shop_channel_id")
-        courier = await get_setting(s,"courier_channel_id")
-    return {"shop_channel_id":shop,"courier_channel_id":courier}
+        shop = await get_setting(s, "shop_channel_id")
+    return {"shop_channel_id": shop}
 
 @router.post("/settings")
 async def admin_save_setting(body: SettingUpdate):
     async with AsyncSessionFactory() as s:
-        await set_setting(s,body.key,body.value)
+        await set_setting(s, body.key, body.value)
+    _add_log("info", f"Sozlama saqlandi: {body.key} = {body.value}")
     return {"ok": True}
+
+# ── Test Channel ───────────────────────────────────
+
+@router.get("/test-channel")
+async def admin_test_channel(channel_id: str = Query(...)):
+    """Bot kanalga kira olishini tekshirish"""
+    from app.main import bot
+    try:
+        cid = int(channel_id)
+    except ValueError:
+        _add_log("error", f"Noto'g'ri kanal ID formati: {channel_id}")
+        return {"ok": False, "error": "Kanal ID son bo'lishi kerak (masalan: -1001234567890)"}
+    try:
+        chat = await bot.get_chat(cid)
+        title = getattr(chat, 'title', str(cid))
+        _add_log("info", f"✅ Kanal tekshirildi OK: {title} ({cid})")
+        return {"ok": True, "title": title}
+    except Exception as e:
+        err = str(e)
+        _add_log("error", f"❌ Kanal xato ({cid}): {err}")
+        if "chat not found" in err.lower():
+            msg = "Kanal topilmadi. ID to'g'riligini tekshiring."
+        elif "not enough rights" in err.lower() or "forbidden" in err.lower():
+            msg = "Bot kanalga admin emas. Botni kanalga admin qiling."
+        elif "kicked" in err.lower():
+            msg = "Bot kanaldan chiqarib yuborilgan."
+        else:
+            msg = f"Telegram xatosi: {err}"
+        return {"ok": False, "error": msg}
+
+# ── Logs ──────────────────────────────────────────
+
+import collections
+import datetime as _dt
+
+_LOG_BUFFER: collections.deque = collections.deque(maxlen=300)
+
+def _add_log(level: str, msg: str):
+    now = _dt.datetime.now().strftime("%H:%M:%S")
+    _LOG_BUFFER.appendleft({"level": level, "msg": msg, "time": now})
+
+@router.get("/logs")
+async def admin_get_logs():
+    return {"logs": list(_LOG_BUFFER)}
 
 # ── Database Management ──────────────────────────────────────────────────────
 
