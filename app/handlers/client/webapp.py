@@ -17,9 +17,10 @@ from sqlalchemy import cast, String, desc
 router = Router()
 logger = logging.getLogger(__name__)
 
-# ── In-memory cooldown (birinchi himoya qatlami)
+# Parallel so'rovlarni bloklash uchun (faqat ichki himoya)
+_processing: set = set()
+# In-memory cooldown — server restart bo'lsa reset bo'ladi, shuning uchun DB-check asosiy
 _last_order_time: dict[int, float] = {}
-_processing: set = set()   # parallel so'rovlarni bloklash
 ORDER_COOLDOWN = 60  # soniya
 
 
@@ -27,11 +28,10 @@ ORDER_COOLDOWN = 60  # soniya
 async def handle_webapp_data(message: Message):
     tg_id = message.from_user.id
 
-    # ── 0. Parallel so'rovni bloklash
+    # Parallel so'rovni bloklash (bir vaqtda 2 ta xabar kelsa)
     if tg_id in _processing:
         logger.warning(f"Parallel order attempt blocked for {tg_id}")
-        await message.answer("⏳ Buyurtmangiz hali qayta ishlanmoqda, kuting...")
-        return
+        return  # Foydalanuvchiga xabar bermaymiz — shunchaki ignore
     _processing.add(tg_id)
 
     try:
@@ -41,19 +41,14 @@ async def handle_webapp_data(message: Message):
 
 
 async def _process_order(message: Message, tg_id: int):
-    # ── 1. In-memory cooldown (tez javob)
+    # In-memory cooldown (tez bloklash, xabar bermasdan)
     now = time.time()
     last = _last_order_time.get(tg_id, 0)
     if now - last < ORDER_COOLDOWN:
-        remaining = int(ORDER_COOLDOWN - (now - last))
-        logger.warning(f"In-memory cooldown: user {tg_id}, {remaining}s left")
-        await message.answer(
-            f"⏳ Buyurtmangiz allaqachon qabul qilindi!\n"
-            f"Yangi buyurtma berish uchun {remaining} soniya kuting."
-        )
-        return
+        logger.warning(f"In-memory cooldown: user {tg_id}")
+        return  # Xabar bermaymiz
 
-    # ── 2. JSON parse
+    # JSON parse
     try:
         data = json.loads(message.web_app_data.data)
     except Exception as e:
@@ -64,15 +59,15 @@ async def _process_order(message: Message, tg_id: int):
     if data.get("type") != "order_create":
         return
 
-    # ── 3. Validatsiya
+    # Validatsiya
     total = data.get("total", 0)
     if total < 50000:
-        await message.answer("❌ Minimal buyurtma summasi — 50 000 soʻm.")
+        await message.answer("❌ Minimal buyurtma summasi — 50 000 so'm.")
         return
 
     items = data.get("items", [])
     if not items:
-        await message.answer("❌ Savat boʻsh.")
+        await message.answer("❌ Savat bo'sh.")
         return
 
     location = data.get("location", {})
@@ -92,7 +87,7 @@ async def _process_order(message: Message, tg_id: int):
             await message.answer("❌ Foydalanuvchi topilmadi. /start ni bosing.")
             return
 
-        # ── 4. DB-level duplicate check (eng ishonchli himoya)
+        # DB-level duplicate check
         from datetime import datetime, timedelta, timezone
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=ORDER_COOLDOWN)
         dup_result = await session.execute(
@@ -104,26 +99,22 @@ async def _process_order(message: Message, tg_id: int):
         )
         dup = dup_result.scalar_one_or_none()
         if dup:
-            _last_order_time[tg_id] = now  # in-memory ham yangilash
-            logger.warning(f"DB-level duplicate blocked for user {tg_id}, order {dup.order_number}")
-            await message.answer(
-                f"⚠️ Sizning #{dup.order_number} raqamli buyurtmangiz allaqachon qabul qilingan!\n"
-                f"Iltimos, 60 soniya kuting."
-            )
-            return
+            _last_order_time[tg_id] = now
+            logger.warning(f"DB duplicate blocked for user {tg_id}, order {dup.order_number}")
+            return  # Xabar bermaymiz — foydalanuvchi allaqachon tasdiqlash olgan
 
-        # ── 5. Cooldown o'rnatish (DB yozishdan OLDIN — race condition oldini olish)
+        # Cooldown o'rnatish (DB yozishdan OLDIN)
         _last_order_time[tg_id] = now
 
         # Promo tekshirish
         if promo_code:
             promo_info = await validate_promo(session, promo_code)
             if not promo_info:
-                await message.answer("❌ Promokod yaroqsiz yoki muddati oʻtgan.")
+                await message.answer("❌ Promokod yaroqsiz yoki muddati o'tgan.")
                 return
             await use_promo(session, promo_code)
 
-        # ── 6. Buyurtma yaratish
+        # Buyurtma yaratish
         order = await create_order(
             session=session,
             user_id=user.id,
@@ -137,15 +128,23 @@ async def _process_order(message: Message, tg_id: int):
             promo_code=promo_code,
         )
 
-        # User ga xabar
+        # Foydalanuvchiga xabar
         await notify_user_status(message.bot, tg_id, order)
 
-        # Admin kanalga yuborish
+        # Shop kanalga yuborish
         shop_channel_id = await get_shop_channel_id(session)
+        logger.info(f"Shop channel ID: {shop_channel_id}")
         if shop_channel_id:
             msg_id = await send_order_to_channel(message.bot, shop_channel_id, order)
             if msg_id:
                 await set_channel_message_id(session, order.id, msg_id)
+            else:
+                logger.error(f"send_order_to_channel returned None for order {order.order_number}")
+                from app.admin_api import _add_log
+                _add_log("error", f"❌ #{order.order_number} buyurtma shop kanalga yuborilmadi (channel_id={shop_channel_id}). Bot admin emasmi?")
+        else:
+            logger.warning("shop_channel_id is 0 or None — kanal sozlanmagan!")
+            from app.admin_api import _add_log
+            _add_log("warn", "⚠️ Shop kanal ID sozlanmagan! Admin paneldan Sozlamalar > Shop kanal ID ni kiriting.")
 
     logger.info(f"✅ Order {order.order_number} created for user {tg_id}")
-    await message.answer("✅ Buyurtmangiz qabul qilindi! Tasdiqlashni kuting.")
