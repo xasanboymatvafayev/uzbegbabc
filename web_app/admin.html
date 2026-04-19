@@ -37,6 +37,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .nsec{padding:12px 18px 4px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);opacity:.5}
 .nout{margin:12px 14px;padding:9px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px;font-weight:600;width:calc(100% - 28px);transition:all .2s}
 .nout:hover{background:rgba(239,68,68,.18)}
+.log-flt{padding:4px 12px;border-radius:20px;border:1px solid var(--br);background:var(--s2);color:var(--mu);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.log-flt.on{background:rgba(245,166,35,.15);border-color:var(--ac);color:var(--ac)}
+.log-err{color:#f87171}.log-warn{color:#fbbf24}.log-info{color:#60a5fa}.log-ok{color:#4ade80}.log-time{color:var(--mu);font-size:10px}
 
 .main{margin-left:232px;flex:1;display:flex;flex-direction:column;min-height:100vh}
 .topbar{padding:15px 28px;background:var(--s1);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
@@ -308,22 +311,47 @@ textarea.fi{resize:vertical;min-height:65px}
       <!-- SETTINGS -->
       <div class="sec" id="s-settings">
         <div class="shl" style="margin-bottom:20px">Sozlamalar</div>
-        <div style="max-width:460px;display:flex;flex-direction:column;gap:13px">
-          <div class="tw" style="padding:18px">
-            <div style="font-weight:600;margin-bottom:11px">📢 Shop kanal ID</div>
-            <input class="fi" id="ss1" placeholder="-1001234567890">
-            <button class="btn bp sm" style="margin-top:9px" onclick="saveSetting('shop_channel_id',document.getElementById('ss1').value)">Saqlash</button>
+        <div style="max-width:520px;display:flex;flex-direction:column;gap:14px">
+
+          <!-- Shop kanal ID -->
+          <div class="tw" style="padding:20px">
+            <div style="font-weight:700;margin-bottom:6px">📢 Shop kanal ID</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:11px">Buyurtmalar tushadigan kanal. Bot shu kanalga admin bo'lishi kerak.</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="fi" id="ss1" placeholder="-1001234567890" style="flex:1">
+              <button class="btn bp sm" onclick="saveShopChannel()">💾 Saqlash</button>
+              <button class="btn sm" style="background:var(--s3)" onclick="testShopChannel()">🔍 Test</button>
+            </div>
+            <div id="ss1-status" style="margin-top:10px;font-size:12px;display:none"></div>
           </div>
-          <div class="tw" style="padding:18px">
-            <div style="font-weight:600;margin-bottom:11px">🚴 Courier kanal ID</div>
-            <input class="fi" id="ss2" placeholder="-1001234567890">
-            <button class="btn bp sm" style="margin-top:9px" onclick="saveSetting('courier_channel_id',document.getElementById('ss2').value)">Saqlash</button>
-          </div>
-          <div class="tw" style="padding:18px">
-            <div style="font-weight:600;margin-bottom:6px">🔗 API manzil</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mu)" id="apiurl"></div>
+
+          <!-- API manzil -->
+          <div class="tw" style="padding:20px">
+            <div style="font-weight:700;margin-bottom:6px">🔗 API manzil</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mu);word-break:break-all" id="apiurl"></div>
             <button class="btn bg sm" style="margin-top:9px" onclick="pingApi()">🔄 Tekshirish</button>
           </div>
+
+          <!-- Loglar -->
+          <div class="tw" style="padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="font-weight:700">📋 Tizim loglari</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn sm" style="background:var(--s3)" onclick="loadLogs()">🔄 Yangilash</button>
+                <button class="btn sm" style="background:rgba(239,68,68,.12);color:#f87171" onclick="clearLogs()">🗑️ Tozalash</button>
+              </div>
+            </div>
+            <div id="log-filter" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+              <button class="log-flt on" onclick="filterLogs('all',this)">Barchasi</button>
+              <button class="log-flt" onclick="filterLogs('error',this)" style="color:#f87171">❌ Xato</button>
+              <button class="log-flt" onclick="filterLogs('warn',this)" style="color:#fbbf24">⚠️ Ogohlantirish</button>
+              <button class="log-flt" onclick="filterLogs('info',this)" style="color:#60a5fa">ℹ️ Info</button>
+            </div>
+            <div id="log-box" style="background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;max-height:420px;overflow-y:auto;line-height:1.7">
+              <div style="color:var(--mu);text-align:center;padding:20px">Loglarni yuklash uchun "Yangilash" ni bosing</div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1001,18 +1029,124 @@ function delPromoBtn(btn){
 
 // ── SETTINGS ────────────────────────────────────────────────────
 async function loadSettings(){
-  document.getElementById('apiurl').textContent=API;
-  try{
-    const s=await GET('/api/admin/settings');
-    if(s.shop_channel_id) document.getElementById('ss1').value=s.shop_channel_id;
-    if(s.courier_channel_id) document.getElementById('ss2').value=s.courier_channel_id;
-  } catch{}
+  document.getElementById('apiurl').textContent = API;
+  try {
+    const s = await GET('/api/admin/settings');
+    if(s.shop_channel_id) document.getElementById('ss1').value = s.shop_channel_id;
+  } catch(e) {
+    addLog('error', 'Sozlamalarni yuklashda xato: ' + e.message);
+  }
 }
+
+async function saveShopChannel(){
+  const val = document.getElementById('ss1').value.trim();
+  if(!val){ toast('Kanal ID kiriting!','er'); return; }
+  if(!val.startsWith('-')){ toast('Kanal ID manfiy bo\'lishi kerak (masalan: -1001234567890)','er'); return; }
+  try {
+    await POST('/api/admin/settings', {key:'shop_channel_id', value:val});
+    toast('✅ Shop kanal ID saqlandi', 'ok');
+    addLog('info', `Shop kanal ID yangilandi: ${val}`);
+    showChannelStatus('ss1-status', 'ok', `✅ Saqlandi: ${val}`);
+  } catch(e) {
+    toast('Xato: ' + e.message, 'er');
+    addLog('error', 'Shop kanal ID saqlashda xato: ' + e.message);
+  }
+}
+
+async function testShopChannel(){
+  const val = document.getElementById('ss1').value.trim();
+  if(!val){ toast('Avval kanal ID kiriting', 'er'); return; }
+  showChannelStatus('ss1-status', 'loading', '🔄 Tekshirilmoqda...');
+  addLog('info', `Shop kanal test boshlandi: ${val}`);
+  try {
+    const res = await fetch(API + '/api/admin/test-channel?channel_id=' + encodeURIComponent(val), {headers: H()});
+    const data = await res.json();
+    if(data.ok){
+      showChannelStatus('ss1-status', 'ok', `✅ Bot kanalga kira oladi — "${data.title || val}"`);
+      addLog('info', `✅ Shop kanal OK: ${data.title || val}`);
+    } else {
+      showChannelStatus('ss1-status', 'err', `❌ ${data.error || 'Bot kanalga kira olmayapti. Bot kanalga admin qilinganmi?'}`);
+      addLog('error', `❌ Shop kanal xato: ${data.error}`);
+    }
+  } catch(e) {
+    showChannelStatus('ss1-status', 'err', '❌ Server bilan ulanishda xato: ' + e.message);
+    addLog('error', 'Shop kanal test xato: ' + e.message);
+  }
+}
+
+function showChannelStatus(elId, type, msg){
+  const el = document.getElementById(elId);
+  el.style.display = 'block';
+  el.style.padding = '8px 12px';
+  el.style.borderRadius = '8px';
+  el.style.fontWeight = '600';
+  if(type === 'ok'){ el.style.background='rgba(34,197,94,.1)'; el.style.color='#4ade80'; }
+  else if(type === 'err'){ el.style.background='rgba(239,68,68,.1)'; el.style.color='#f87171'; }
+  else { el.style.background='var(--s3)'; el.style.color='var(--mu)'; }
+  el.textContent = msg;
+}
+
 async function saveSetting(k,v){
   if(!v.trim()){ toast('Qiymat kiriting!','er'); return; }
-  try{ await POST('/api/admin/settings',{key:k,value:v}); toast('Saqlandi ✅','ok'); }
+  try { await POST('/api/admin/settings',{key:k,value:v}); toast('Saqlandi ✅','ok'); }
   catch(e){ toast('Xato: '+e.message,'er'); }
 }
+
+// ── LOGS ────────────────────────────────────────────────────────
+let _allLogs = [];
+let _logFilter = 'all';
+
+function addLog(level, msg) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('uz-UZ');
+  _allLogs.unshift({ level, msg, time });
+  if(_allLogs.length > 200) _allLogs.pop();
+  renderLogs();
+}
+
+async function loadLogs(){
+  const box = document.getElementById('log-box');
+  box.innerHTML = '<div style="color:var(--mu);text-align:center;padding:12px">Yuklanmoqda...</div>';
+  try {
+    const data = await GET('/api/admin/logs');
+    _allLogs = data.logs || [];
+    renderLogs();
+    addLog('info', `Loglar yuklandi (${_allLogs.length} ta)`);
+  } catch(e) {
+    box.innerHTML = `<div class="log-err">❌ Loglarni yuklashda xato: ${e.message}</div>`;
+  }
+}
+
+function renderLogs(){
+  const box = document.getElementById('log-box');
+  const filtered = _logFilter === 'all' ? _allLogs : _allLogs.filter(l => l.level === _logFilter);
+  if(!filtered.length){
+    box.innerHTML = '<div style="color:var(--mu);text-align:center;padding:20px">Log yo\'q</div>';
+    return;
+  }
+  box.innerHTML = filtered.map(l => {
+    const cls = l.level==='error'?'log-err':l.level==='warn'?'log-warn':l.level==='info'?'log-info':'log-ok';
+    const icon = l.level==='error'?'❌':l.level==='warn'?'⚠️':l.level==='info'?'ℹ️':'✅';
+    return `<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span class="log-time">[${l.time}]</span> <span class="${cls}">${icon} ${escHtml(l.msg)}</span>
+    </div>`;
+  }).join('');
+}
+
+function filterLogs(type, btn){
+  _logFilter = type;
+  document.querySelectorAll('.log-flt').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderLogs();
+}
+
+function clearLogs(){
+  _allLogs = [];
+  renderLogs();
+  addLog('info', 'Loglar tozalandi');
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── DRAG & DROP ─────────────────────────────────────────────────
 const iz=document.getElementById('izone');
@@ -1036,9 +1170,7 @@ async function loadDbTables() {
   const cardsEl = document.getElementById('db-stat-cards');
   listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--mu)">Yuklanmoqda...</div>';
   try {
-    const res = await fetch(API + '/api/admin/db/tables', { 
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const res = await fetch(API + '/api/admin/db/tables', { headers: H() });
     const tables = await res.json();
 
     // Stat cards
@@ -1064,31 +1196,28 @@ async function loadDbTables() {
           </tr>
         </thead>
         <tbody>
-          ${tables.map(t => {
-            const dependsStr = JSON.stringify(t.depends).replace(/"/g, '&quot;');
-            return `
-              <tr style="border-bottom:1px solid var(--br);transition:background .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
-                <td style="padding:12px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">
-                  ${tableIcon(t.table)} ${t.table}
-                </td>
-                <td style="padding:12px;font-size:13px;color:var(--mu)">${t.description}</td>
-                <td style="padding:12px;text-align:center">
-                  <span style="background:var(--s3);padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${t.row_count > 0 ? 'var(--ac)' : 'var(--mu)'}">
-                    ${t.row_count >= 0 ? t.row_count : '?'}
-                  </span>
-                </td>
-                <td style="padding:12px;text-align:center;font-size:12px;color:var(--mu)">
-                  ${t.depends.length > 0 ? t.depends.join(', ') : '—'}
-                </td>
-                <td style="padding:12px;text-align:right">
-                  <button class="btn sm" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)"
-                    onclick="dbClearConfirm('${t.table}','${t.label}','${t.description.replace(/'/g, "\\'")}',${dependsStr})">
-                    🗑️ Tozalash
-                  </button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
+          ${tables.map(t => `
+            <tr style="border-bottom:1px solid var(--br);transition:background .15s" onmouseover="this.style.background='var(--s2)'" onmouseout="this.style.background=''">
+              <td style="padding:12px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">
+                ${tableIcon(t.table)} ${t.table}
+              </td>
+              <td style="padding:12px;font-size:13px;color:var(--mu)">${t.description}</td>
+              <td style="padding:12px;text-align:center">
+                <span style="background:var(--s3);padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${t.row_count > 0 ? 'var(--ac)' : 'var(--mu)'}">
+                  ${t.row_count >= 0 ? t.row_count : '?'}
+                </span>
+              </td>
+              <td style="padding:12px;text-align:center;font-size:12px;color:var(--mu)">
+                ${t.depends.length > 0 ? t.depends.join(', ') : '—'}
+              </td>
+              <td style="padding:12px;text-align:right">
+                <button class="btn sm" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)"
+                  onclick="dbClearConfirm('${t.table}','${t.label}','${t.description}',${JSON.stringify(t.depends)})">
+                  🗑️ Tozalash
+                </button>
+              </td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
     `;
@@ -1104,7 +1233,7 @@ function tableIcon(name) {
 
 function dbClearConfirm(table, label, desc, depends) {
   _dbPendingTable = table;
-  document.getElementById('db-confirm-title').innerHTML = `"${label}" jadvalini tozalash`;
+  document.getElementById('db-confirm-title').textContent = `"${label}" jadvalini tozalash`;
   let msg = `<b>${table}</b> jadvalidagi barcha ma'lumotlar o'chiriladi.<br><br>`;
   if (depends && depends.length > 0) {
     msg += `⚠️ Bog'liq jadvallar ham tozalanadi: <b>${depends.join(', ')}</b><br><br>`;
@@ -1128,19 +1257,19 @@ async function dbConfirmDo() {
   try {
     const res = await fetch(API + '/api/admin/db/clear', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...H(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ table: _dbPendingTable, cascade: true })
     });
     const data = await res.json();
     if (data.ok) {
       dbConfirmClose();
-      toast(`✅ "${_dbPendingTable}" tozalandi`, 'ok');
-      await loadDbTables();
+      toast(`✅ "${_dbPendingTable || ''}" tozalandi`, 'ok');
+      await loadDbTables(); // Refresh
     } else {
-      toast('❌ Xatolik: ' + (data.detail || 'Noma\'lum'), 'er');
+      toast('❌ Xatolik: ' + (data.detail || 'Noma\'lum'), 'err');
     }
   } catch(e) {
-    toast('❌ Server xatosi: ' + e.message, 'er');
+    toast('❌ Server xatosi: ' + e.message, 'err');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Ha, tozalash';
