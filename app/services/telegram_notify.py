@@ -73,6 +73,17 @@ async def send_order_to_channel(bot: Bot, channel_id: int, order: Order) -> int 
         return msg.message_id
     except Exception as e:
         logger.error(f"Failed to send to channel: {e}")
+        try:
+            from app.admin_api import _add_log
+            err = str(e)
+            if "bot was kicked" in err.lower() or "forbidden" in err.lower():
+                _add_log("error", f"❌ Bot kanal ({channel_id}) ga kira olmayapti — admin qilinganmi? ({err})")
+            elif "chat not found" in err.lower():
+                _add_log("error", f"❌ Kanal topilmadi ({channel_id}) — ID to'g'riligini tekshiring")
+            else:
+                _add_log("error", f"❌ Kanalga xabar yuborishda xato ({channel_id}): {err}")
+        except Exception:
+            pass
         return None
 
 
