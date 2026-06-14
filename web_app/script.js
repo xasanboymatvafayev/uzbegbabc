@@ -5,7 +5,7 @@
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.expand(); tg.ready(); }
 
-const API_BASE = "https://web-production-e8572.up.railway.app";
+const API_BASE = "https://diamond-fastfood.onrender.com";
 const MIN_ORDER = 50000;
 
 let state = {
