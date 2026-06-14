@@ -509,6 +509,11 @@ function H() {
         'Content-Type': 'application/json'
     };
 }
+const GET  = p       => req('GET',  p);
+const POST = (p,b)   => req('POST', p, b);
+const PUT  = (p,b)   => req('PUT',  p, b);
+const DEL  = p       => req('DELETE',p);
+const PATCH= (p,b)   => req('PATCH',p, b);
 const SL = {
   NEW:'Yangi', CONFIRMED:'Tasdiqlangan', COOKING:'Tayyorlanmoqda',
   COURIER_ASSIGNED:'Kuryer tayinlangan', OUT_FOR_DELIVERY:"Yo'lda",
@@ -576,11 +581,7 @@ async function req(method, path, body){
   }
   try{ return await r.json(); } catch{ return {}; }
 }
-const GET  = p       => req('GET',  p);
-const POST = (p,b)   => req('POST', p, b);
-const PUT  = (p,b)   => req('PUT',  p, b);
-const DEL  = p       => req('DELETE',p);
-const PATCH= (p,b)   => req('PATCH',p, b);
+
 
 async function pingApi(){
   const d=document.getElementById('adot'), l=document.getElementById('albl');
