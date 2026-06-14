@@ -514,6 +514,7 @@ const POST = (p,b)   => req('POST', p, b);
 const PUT  = (p,b)   => req('PUT',  p, b);
 const DEL  = p       => req('DELETE',p);
 const PATCH= (p,b)   => req('PATCH',p, b);
+const J = {'Content-Type':'application/json'};
 const SL = {
   NEW:'Yangi', CONFIRMED:'Tasdiqlangan', COOKING:'Tayyorlanmoqda',
   COURIER_ASSIGNED:'Kuryer tayinlangan', OUT_FOR_DELIVERY:"Yo'lda",
@@ -569,7 +570,7 @@ function nav(id, btn){
 function noop(){}
 
 // ── API ─────────────────────────────────────────────────────────
-const J = {'Content-Type':'application/json'};
+
 async function req(method, path, body){
   const opts = {method, headers:J};
   if(body !== undefined) opts.body = JSON.stringify(body);
