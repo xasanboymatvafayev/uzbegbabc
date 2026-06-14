@@ -504,7 +504,11 @@ textarea.fi{resize:vertical;min-height:65px}
 const API = 'https://diamond-fastfood.onrender.com';
 const PWD = '~';
 const SK  = 'dmd_auth_v2';
-
+function H() {
+    return {
+        'Content-Type': 'application/json'
+    };
+}
 const SL = {
   NEW:'Yangi', CONFIRMED:'Tasdiqlangan', COOKING:'Tayyorlanmoqda',
   COURIER_ASSIGNED:'Kuryer tayinlangan', OUT_FOR_DELIVERY:"Yo'lda",
