@@ -327,7 +327,7 @@ submitOrderBtn.addEventListener('click', async () => {
     // Muvaffaqiyatli — savatni tozalash
     checkoutModal.style.display = 'none';
     state.cart = {};
-    renderCart();
+    updateCartPanel();
 
     const msg = `✅ Buyurtmangiz #${result.order_number} qabul qilindi!\nYaqin orada siz bilan bog'lanamiz.`;
     if (tg) {
