@@ -173,6 +173,12 @@ textarea.fi{resize:vertical;min-height:65px}
   .fr{grid-template-columns:1fr}.sg{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}
   .cgrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
 }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(245,166,35,0.5); transform: translateX(-50%) scale(1); }
+  50% { box-shadow: 0 4px 30px rgba(245,166,35,0.9); transform: translateX(-50%) scale(1.03); }
+}
+.NEW-row td { background: rgba(245,166,35,0.08) !important; }
 </style>
 </head>
 <body>
@@ -215,7 +221,7 @@ textarea.fi{resize:vertical;min-height:65px}
         <button class="mto" onclick="document.getElementById('sb').classList.toggle('op')">☰</button>
         <div class="pt" id="ptt">Statistika</div>
       </div>
-      <div class="aps"><div class="dot" id="adot"></div><span id="albl">...</span></div>
+      <button onclick="_soundEnabled=!_soundEnabled;this.textContent=_soundEnabled?'🔔 Ovoz':'🔕 Ovoz'" style="background:var(--s2);border:1px solid var(--br);color:var(--mu);padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;margin-right:8px">🔔 Ovoz</button><div class="aps"><div class="dot" id="adot"></div><span id="albl">...</span></div>
     </header>
 
     <div class="cnt">
@@ -552,7 +558,88 @@ function doLogout(){ sessionStorage.removeItem(SK); location.reload(); }
     boot();
   }
 })();
-function boot(){ pingApi(); loadDash(); setInterval(pingApi, 30000); }
+function boot(){ 
+  pingApi(); 
+  loadDash(); 
+  setInterval(pingApi, 30000);
+  // Yangi buyurtmalarni har 5 sekundda tekshirish
+  startOrderPolling();
+}
+
+// ── YANGI BUYURTMA BILDIRISHNOMASI ──────────────────────────────
+let _knownOrderIds = null; // null = birinchi yuklash
+let _pollingActive = false;
+let _soundEnabled = true;
+
+function playOrderSound(){
+  if(!_soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // 3 marta beep
+    [0, 0.3, 0.6].forEach(delay => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.25);
+    });
+  } catch(e) { console.log('Audio error:', e); }
+}
+
+function showNewOrderBanner(count){
+  let banner = document.getElementById('newOrderBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'newOrderBanner';
+    banner.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#f5a623;color:#000;padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;box-shadow:0 4px 20px rgba(245,166,35,0.5);cursor:pointer;animation:pulse 1s infinite';
+    banner.onclick = () => { 
+      banner.remove(); 
+      nav('orders', document.querySelectorAll('.ni')[1]);
+    };
+    document.body.appendChild(banner);
+    setTimeout(() => { if(banner.parentNode) banner.remove(); }, 8000);
+  }
+  banner.textContent = `🔔 ${count} ta yangi buyurtma keldi! (Ko'rish uchun bosing)`;
+}
+
+async function startOrderPolling(){
+  if(_pollingActive) return;
+  _pollingActive = true;
+  
+  const poll = async () => {
+    try {
+      const orders = await GET('/api/admin/orders?status=active');
+      const ids = new Set(orders.map(o => o.id));
+      
+      if(_knownOrderIds === null){
+        // Birinchi yuklash - faqat eslab qolamiz
+        _knownOrderIds = ids;
+      } else {
+        // Yangi buyurtmalarni topish
+        const newOrders = orders.filter(o => !_knownOrderIds.has(o.id));
+        if(newOrders.length > 0){
+          playOrderSound();
+          showNewOrderBanner(newOrders.length);
+          // Dashboard va orders sahifasini yangilash
+          loadMiniOrders();
+          if(document.getElementById('s-orders').classList.contains('on')){
+            loadOrders();
+          }
+          newOrders.forEach(o => _knownOrderIds.add(o.id));
+        }
+      }
+    } catch(e){ /* polling xatosi - jimgina o'tamiz */ }
+    
+    setTimeout(poll, 5000); // 5 sekundda bir
+  };
+  
+  poll();
+}
 
 // ── NAV ─────────────────────────────────────────────────────────
 const TITLES = {dashboard:'Statistika',orders:'Buyurtmalar',foods:'Taomlar',
@@ -740,7 +827,7 @@ function renderOrders(list){
     return;
   }
   document.getElementById('otw').innerHTML='<table><thead><tr><th>Raqam</th><th>Mijoz</th><th>Telefon</th><th>Jami</th><th>Status</th><th>Kuryer</th><th>Vaqt</th><th></th></tr></thead><tbody>'+
-    list.map(o=>`<tr>
+    list.map(o=>`<tr class="${o.status==='NEW'?'NEW-row':''}">
       <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ac)">#${esc(o.order_number)}</span></td>
       <td>${esc(o.customer_name||'—')}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${esc(o.phone||'—')}</td>
