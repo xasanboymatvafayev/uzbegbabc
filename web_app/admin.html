@@ -567,9 +567,9 @@ function boot(){
 }
 
 // ── YANGI BUYURTMA BILDIRISHNOMASI ──────────────────────────────
-let _knownOrderIds = null; // null = birinchi yuklash
-let _pollingActive = false;
-let _soundEnabled = true;
+var _knownOrderIds = null;
+var _pollingActive = false;
+var _soundEnabled = true;
 
 function playOrderSound(){
   if(!_soundEnabled) return;
