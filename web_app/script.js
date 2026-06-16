@@ -315,11 +315,25 @@ submitOrderBtn.addEventListener('click', async () => {
   submitOrderBtn.textContent = '⏳ Yuborilmoqda...';
 
   try {
+    const init_data = encodeURIComponent(getInitData());
+    const resp = await fetch(`${API_BASE}/api/orders?init_data=${init_data}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.detail || 'Xatolik yuz berdi');
+
+    // Muvaffaqiyatli — savatni tozalash
+    checkoutModal.style.display = 'none';
+    state.cart = {};
+    renderCart();
+
+    const msg = `✅ Buyurtmangiz #${result.order_number} qabul qilindi!\nYaqin orada siz bilan bog'lanamiz.`;
     if (tg) {
-      tg.sendData(JSON.stringify(payload));
-      tg.close();
+      tg.showAlert(msg, () => tg.close());
     } else {
-      alert('Buyurtma: ' + JSON.stringify(payload, null, 2));
+      alert(msg);
       submitOrderBtn.disabled = false;
       submitOrderBtn.textContent = '✅ Buyurtmani tasdiqlash';
     }
@@ -327,7 +341,7 @@ submitOrderBtn.addEventListener('click', async () => {
     console.error(e);
     submitOrderBtn.disabled = false;
     submitOrderBtn.textContent = '✅ Buyurtmani tasdiqlash';
-    alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    alert('❌ ' + (e.message || "Xatolik yuz berdi. Qayta urinib ko'ring."));
   }
 });
 
