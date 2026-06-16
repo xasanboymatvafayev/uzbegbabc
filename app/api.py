@@ -188,17 +188,12 @@ async def api_create_order(
 
     # Agar user topilmasa — telefon raqam bo'yicha qidirish yoki yangi yaratish
     if not user:
-        result = await session.execute(select(User).where(User.phone == body.phone))
-        user = result.scalar_one_or_none()
-
-    if not user:
-        # Vaqtinchalik "guest" foydalanuvchi yaratish
+        # Guest foydalanuvchi yaratish (Telegram ID si yo'q)
         import random
         guest_tg_id = -(random.randint(10_000_000, 99_999_999))  # manfiy — real Telegram ID emas
         user = User(
             tg_id=guest_tg_id,
             full_name=body.customer_name,
-            phone=body.phone,
             username=None,
         )
         session.add(user)
