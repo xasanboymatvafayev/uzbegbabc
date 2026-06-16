@@ -128,12 +128,39 @@ async def admin_orders(status: Optional[str]=None, limit: int=Query(100,le=500))
 @router.patch("/orders/{oid}/status")
 async def admin_order_status(oid: int, body: OrderStatusUpdate):
     async with AsyncSessionFactory() as s:
-        res = await s.execute(select(Order).where(Order.id==oid))
+        res = await s.execute(
+            select(Order)
+            .options(selectinload(Order.user), selectinload(Order.courier), selectinload(Order.items))
+            .where(Order.id==oid)
+        )
         o = res.scalar_one_or_none()
-        if not o: raise HTTPException(404,"Buyurtma topilmadi")
+        if not o: raise HTTPException(404, "Buyurtma topilmadi")
         o.status = body.status
-        if body.status=="DELIVERED": o.delivered_at=datetime.now(timezone.utc)
+        if body.status == "DELIVERED":
+            o.delivered_at = datetime.now(timezone.utc)
         await s.commit()
+        await s.refresh(o)
+
+        # Foydalanuvchiga Telegram xabari
+        try:
+            from aiogram import Bot
+            from app.config import settings
+            from app.services.telegram_notify import notify_user_status, update_channel_message
+            from app.services.settings_service import get_shop_channel_id
+            _bot = Bot(token=settings.BOT_TOKEN)
+            try:
+                if o.user and o.user.tg_id and o.user.tg_id > 0:
+                    await notify_user_status(_bot, o.user.tg_id, o)
+                shop_channel_id = await get_shop_channel_id(s)
+                if shop_channel_id and o.channel_message_id:
+                    closed = body.status in ("DELIVERED", "CANCELED")
+                    await update_channel_message(_bot, shop_channel_id, o.channel_message_id, o, closed=closed)
+            finally:
+                await _bot.session.close()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Telegram notify xatosi: {e}")
+
     return {"ok": True}
 
 # ── Foods ─────────────────────────────────────────
