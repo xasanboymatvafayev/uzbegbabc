@@ -101,3 +101,143 @@ async def api_promo_validate(
     if not result:
         raise HTTPException(status_code=404, detail="Promo-kod topilmadi yoki muddati o'tgan")
     return result
+
+
+# ─────────────────────────────────────────────
+# POST /api/orders  — brauzerdan buyurtma qabul qilish
+# ─────────────────────────────────────────────
+from pydantic import BaseModel
+from typing import List, Any
+from sqlalchemy import select, desc
+from app.models.user import User
+from app.models.order import Order
+from app.services.orders import create_order, set_channel_message_id
+from app.services.promo import use_promo
+from app.services.settings_service import get_shop_channel_id
+import time
+
+_order_cooldown: dict[int, float] = {}
+ORDER_COOLDOWN = 60
+
+
+class OrderItemIn(BaseModel):
+    food_id: int
+    name: str
+    qty: int
+    price: float
+
+
+class OrderCreateRequest(BaseModel):
+    items: List[OrderItemIn]
+    total: float
+    customer_name: str
+    phone: str
+    comment: str | None = None
+    location: dict
+    promo_code: str | None = None
+    created_at_client: str | None = None
+
+
+async def api_create_order(
+    body: OrderCreateRequest,
+    init_data: str = Query(default=""),
+    session: AsyncSession = Depends(get_db),
+):
+    """Brauzer va Telegram WebApp uchun buyurtma yaratish endpointi."""
+    # Telegram initData bilan foydalanuvchini topish
+    tg_user = None
+    if init_data:
+        tg_user = verify_telegram_init_data(init_data)
+
+    # Validatsiya
+    if body.total < 50000:
+        raise HTTPException(status_code=400, detail="Minimal buyurtma summasi — 50 000 so'm.")
+    if not body.items:
+        raise HTTPException(status_code=400, detail="Savat bo'sh.")
+    lat = body.location.get("lat")
+    lng = body.location.get("lng")
+    if not lat or not lng:
+        raise HTTPException(status_code=400, detail="Joylashuv ko'rsatilmagan.")
+
+    # Foydalanuvchini topish (Telegram ID bo'lsa)
+    user = None
+    if tg_user:
+        tg_id = tg_user.get("id")
+        if tg_id:
+            # Cooldown tekshirish
+            now = time.time()
+            last = _order_cooldown.get(tg_id, 0)
+            if now - last < ORDER_COOLDOWN:
+                # DB da ham tekshirish
+                from datetime import datetime, timedelta, timezone
+                cutoff = datetime.now(timezone.utc) - timedelta(seconds=ORDER_COOLDOWN)
+                dup_result = await session.execute(
+                    select(Order)
+                    .join(User, Order.user_id == User.id)
+                    .where(User.tg_id == tg_id)
+                    .where(Order.created_at >= cutoff)
+                    .order_by(desc(Order.created_at))
+                    .limit(1)
+                )
+                if dup_result.scalar_one_or_none():
+                    raise HTTPException(status_code=429, detail="Iltimos, biroz kuting.")
+            _order_cooldown[tg_id] = now
+
+            result = await session.execute(select(User).where(User.tg_id == tg_id))
+            user = result.scalar_one_or_none()
+
+    # Agar user topilmasa — telefon raqam bo'yicha qidirish yoki yangi yaratish
+    if not user:
+        result = await session.execute(select(User).where(User.phone == body.phone))
+        user = result.scalar_one_or_none()
+
+    if not user:
+        # Vaqtinchalik "guest" foydalanuvchi yaratish
+        import random
+        guest_tg_id = -(random.randint(10_000_000, 99_999_999))  # manfiy — real Telegram ID emas
+        user = User(
+            tg_id=guest_tg_id,
+            full_name=body.customer_name,
+            phone=body.phone,
+            username=None,
+        )
+        session.add(user)
+        await session.flush()
+
+    # Promo tekshirish
+    if body.promo_code:
+        promo_info = await validate_promo(session, body.promo_code)
+        if not promo_info:
+            raise HTTPException(status_code=400, detail="Promokod yaroqsiz yoki muddati o'tgan.")
+        await use_promo(session, body.promo_code)
+
+    # Buyurtma yaratish
+    items_data = [i.model_dump() for i in body.items]
+    order = await create_order(
+        session=session,
+        user_id=user.id,
+        customer_name=body.customer_name,
+        phone=body.phone,
+        comment=body.comment,
+        total=body.total,
+        location_lat=lat,
+        location_lng=lng,
+        items=items_data,
+        promo_code=body.promo_code,
+    )
+
+    # Admin kanalga yuborish
+    shop_channel_id = await get_shop_channel_id(session)
+    if shop_channel_id:
+        from app.main import bot
+        from app.services.telegram_notify import send_order_to_channel
+        msg_id = await send_order_to_channel(bot, shop_channel_id, order)
+        if msg_id:
+            await set_channel_message_id(session, order.id, msg_id)
+
+    return {
+        "ok": True,
+        "order_number": order.order_number,
+        "total": order.total,
+        "message": f"✅ Buyurtmangiz #{order.order_number} qabul qilindi!",
+    }
