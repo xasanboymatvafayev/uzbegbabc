@@ -224,11 +224,16 @@ async def api_create_order(
     # Admin kanalga yuborish
     shop_channel_id = await get_shop_channel_id(session)
     if shop_channel_id:
-        from app.main import bot
+        from aiogram import Bot
+        from app.config import settings
         from app.services.telegram_notify import send_order_to_channel
-        msg_id = await send_order_to_channel(bot, shop_channel_id, order)
-        if msg_id:
-            await set_channel_message_id(session, order.id, msg_id)
+        _bot = Bot(token=settings.BOT_TOKEN)
+        try:
+            msg_id = await send_order_to_channel(_bot, shop_channel_id, order)
+            if msg_id:
+                await set_channel_message_id(session, order.id, msg_id)
+        finally:
+            await _bot.session.close()
 
     return {
         "ok": True,
