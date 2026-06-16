@@ -50,10 +50,8 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://diamond-fastfood.vercel.app"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # Barcha domenlardan ruxsat (brauzer + Telegram)
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -76,6 +74,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 app.add_api_route("/api/categories", api_categories, methods=["GET"])
 app.add_api_route("/api/foods", api_foods, methods=["GET"])
 app.add_api_route("/api/promo/validate", api_promo_validate, methods=["GET"])
+
+# Brauzerdan ham buyurtma qabul qilish (Telegram WebApp + oddiy brauzer)
+from app.api import api_create_order
+app.add_api_route("/api/orders", api_create_order, methods=["POST"])
 
 # ---------------- TELEGRAM WEBHOOK ---------------- #
 @app.post("/webhook")
